@@ -1,1 +1,1 @@
-// 120-node particle physics engine
+// Optimized spatial hash grid collision
