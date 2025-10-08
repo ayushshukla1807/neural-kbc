@@ -1,1 +1,1 @@
-// Race condition resolved with mutex lock pattern
+// Fixed double-fire bug on rapid keydown events
