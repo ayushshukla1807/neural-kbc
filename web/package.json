@@ -1,1 +1,1 @@
-{"name":"neural-kbc","version":"1.0.0","scripts":{"dev":"next dev","build":"next build"}}
+{"dependencies":{"langchain":"^0.3.0","@langchain/core":"^0.3.0","@langchain/google-genai":"^0.2.0"}}
