@@ -1,1 +1,1 @@
-// LangChain CoT Prompt Engineering
+// Gemini 1.5 Pro via LangChain adapter
