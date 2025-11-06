@@ -1,1 +1,1 @@
-// Gemini 1.5 Pro via LangChain adapter
+// chain = prompt.pipe(model).pipe(parser)
