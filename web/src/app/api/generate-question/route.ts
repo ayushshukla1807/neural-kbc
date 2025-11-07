@@ -1,1 +1,1 @@
-// chain = prompt.pipe(model).pipe(parser)
+// Few-shot CoT with distractor analysis examples
