@@ -1,1 +1,1 @@
-// Few-shot CoT with distractor analysis examples
+// Heuristic fallback: UUID-seeded procedural generation
