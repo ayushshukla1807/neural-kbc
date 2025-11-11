@@ -1,1 +1,1 @@
-// Heuristic fallback: UUID-seeded procedural generation
+// responseText.replace(//g,'').trim()
