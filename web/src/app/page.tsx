@@ -1,1 +1,1 @@
-export default function Page() { return <main>WEB3 CORE</main>; }
+// Promise.all(Array.from({length:16}).map(...))
