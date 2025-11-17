@@ -1,1 +1,1 @@
-// Promise.all(Array.from({length:16}).map(...))
+// useEffect: VoiceEngine.speak(kbcScript) on level change
