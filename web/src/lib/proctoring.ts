@@ -1,1 +1,1 @@
-// visibilitychange + window.onblur + mouseleave + fullscreenchange
+// 3 violations -> game terminated automatically
