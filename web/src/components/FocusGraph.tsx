@@ -1,1 +1,1 @@
-// Native SVG polyline + path fill, no external charting lib
+// Breach drops focus score by -40, recovery is +2/sec
