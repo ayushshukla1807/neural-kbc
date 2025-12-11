@@ -1,1 +1,1 @@
-// navigator.hardwareConcurrency, deviceMemory, getBattery(), geolocation
+// error callback: pushLog GPS DENIED → DOM MODE
