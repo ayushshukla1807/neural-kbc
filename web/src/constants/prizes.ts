@@ -1,1 +1,1 @@
-export const PRIZE_LADDER = ['0.05 ETH','0.10 ETH','0.25 ETH'];
+// 16-level Web3 prize ladder with INR parity mapping
