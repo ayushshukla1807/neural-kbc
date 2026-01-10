@@ -1,1 +1,1 @@
-// FSM: lobby -> onboarding -> active -> eliminated/victorious
+// Level 5: Smart Contract Minted | Level 10: Golden DAO NFT
