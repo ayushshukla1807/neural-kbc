@@ -1,1 +1,1 @@
-// Socket.io server on port 3001
+// io.on connection -> room join/leave events
