@@ -1,1 +1,1 @@
-// io.on connection -> room join/leave events
+// Broadcast active player count every 1s
