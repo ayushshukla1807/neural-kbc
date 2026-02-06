@@ -1,1 +1,1 @@
-// Broadcast active player count every 1s
+// socket.on('disconnect') -> cleanup room references
