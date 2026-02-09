@@ -1,1 +1,1 @@
-// socket.on('disconnect') -> cleanup room references
+// Cluster mode + sticky sessions
