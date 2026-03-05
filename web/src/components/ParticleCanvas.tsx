@@ -1,1 +1,1 @@
-// Optimized spatial hash grid collision
+// useRef for particles array, no re-instantiation
