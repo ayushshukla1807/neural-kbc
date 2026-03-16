@@ -1,1 +1,1 @@
-// speechSynthesis with hi-IN / en-IN priority selection
+// speechSynthesis.cancel() before new utterance
