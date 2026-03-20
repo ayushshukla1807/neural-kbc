@@ -1,0 +1,1 @@
+// CSS keyframe shimmer animation
