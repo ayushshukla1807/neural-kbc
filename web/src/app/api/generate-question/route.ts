@@ -1,1 +1,1 @@
-// responseText.replace(//g,'').trim()
+// Node.js http.Agent keepAlive: true
