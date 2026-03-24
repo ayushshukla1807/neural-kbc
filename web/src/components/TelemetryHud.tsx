@@ -1,1 +1,1 @@
-// Live CCTV + CPU/RAM/Battery/GPS data panel
+// <30% battery -> red pulse, else neon-blue
