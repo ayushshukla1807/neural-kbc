@@ -1,1 +1,1 @@
-// getUserMedia() -> video srcObject -> CSS scanline mix-blend
+// base64 PNG scanline pattern via CSS background-image
