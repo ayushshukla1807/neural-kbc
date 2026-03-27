@@ -1,1 +1,1 @@
-{"dependencies":{"langchain":"^0.3.0","@langchain/core":"^0.3.0","@langchain/google-genai":"^0.2.0"}}
+{"dependencies":{"next":"15.2.4","react":"19.0.0"}}
