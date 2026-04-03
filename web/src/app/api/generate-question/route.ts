@@ -1,1 +1,1 @@
-// Node.js http.Agent keepAlive: true
+// NextResponse with CORS headers
