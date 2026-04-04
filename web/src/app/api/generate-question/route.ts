@@ -1,1 +1,1 @@
-// NextResponse with CORS headers
+// Edge: cache-control max-age=0
