@@ -1,1 +1,61 @@
-// @theme { --color-neon-blue: #00f0ff; }
+@import "tailwindcss";
+
+@theme {
+  --color-neon-blue: #00f0ff;
+  --color-neon-purple: #8a2be2;
+  --color-gold-400: #ffd700;
+  --color-gold-500: #d4a017;
+  --color-gold-600: #aa8000;
+  --color-space-900: #050508;
+  --color-space-950: #030305;
+}
+
+@layer utilities {
+  .glow-text-blue { text-shadow: 0 0 20px rgba(0, 240, 255, 0.8), 0 0 40px rgba(0, 240, 255, 0.4); }
+  .glow-text-gold { text-shadow: 0 0 20px rgba(212, 160, 23, 0.8), 0 0 40px rgba(212, 160, 23, 0.4); }
+  .glow-text-red { text-shadow: 0 0 20px rgba(255, 0, 85, 0.8), 0 0 40px rgba(255, 0, 85, 0.4); }
+  .glass-panel {
+    background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 20px rgba(255,255,255,0.02), 0 8px 32px rgba(0,0,0,0.4);
+  }
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background-color: #030305;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  user-select: none;
+}
+
+::selection { background: rgba(0, 240, 255, 0.3); color: white; }
+
+/* Glitch Animation */
+@keyframes glitch-anim {
+  0% { transform: translate(0) }
+  20% { transform: translate(-2px, 2px) }
+  40% { transform: translate(-2px, -2px) }
+  60% { transform: translate(2px, 2px) }
+  80% { transform: translate(2px, -2px) }
+  100% { transform: translate(0) }
+}
+.glitch-hover:hover { animation: glitch-anim 0.2s cubic-bezier(.25, .46, .45, .94) both infinite; }
+
+/* Camera Shake */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px) rotate(-1deg); }
+  20%, 40%, 60%, 80% { transform: translateX(5px) rotate(1deg); }
+}
+.animate-shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+
+/* Sub-atomic particle background pulse */
+.bg-mesh-grid {
+  background-size: 40px 40px;
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}

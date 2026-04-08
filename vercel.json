@@ -1,1 +1,13 @@
-{"version":2,"builds":[{"src":"web/package.json","use":"@vercel/next"}]}
+{
+  "version": 2,
+  "builds": [
+    { "src": "web/package.json", "use": "@vercel/next" },
+    { "src": "ai-service/multi_llm_router.py", "use": "@vercel/python" },
+    { "src": "realtime-service/server.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/api/ai/(.*)", "dest": "ai-service/multi_llm_router.py" },
+    { "src": "/socket.io/(.*)", "dest": "realtime-service/server.js" },
+    { "src": "/(.*)", "dest": "web/$1" }
+  ]
+}
