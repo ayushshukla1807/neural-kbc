@@ -1,135 +1,96 @@
-# Neural-KBC: Real-Time Distributed Gaming Engine 🚀
+# ⚡ Neural KBC — Web3 Play Along Quiz Engine
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-1.0.0--beta-green.svg)
-![React](https://img.shields.io/badge/React-18.x-61DAFB.svg?logo=react)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.95-009688.svg?logo=fastapi)
-![Node.js](https://img.shields.io/badge/Node.js-20.x-339933.svg?logo=node.js)
-![Redis](https://img.shields.io/badge/Redis-7.x-DC382D.svg?logo=redis)
+> An ultra-high-performance quiz gaming platform featuring AI-driven question generation, real-time Web3 styling, procedural audio synthesis, and a neural-human interface.
 
-**Neural-KBC** is a production-ready, highly scalable quiz platform inspired by *Kaun Banega Crorepati* (Who Wants to Be a Millionaire), strictly architected with 2026-era advanced tech patterns. It blends a distributed microservices backend with real-time WebSocket communication, AI-driven gamification, and robust Big Data analytics.
-
----
-
-## 🏗 System Architecture
-
-Neural-KBC is designed primarily around a microservices architecture to ensure high availability, fault tolerance, and low-latency global edge deployments.
-
-```mermaid
-graph TD
-    Client(React.js + Framer Motion) --> |HTTP/REST| API_Gateway[Edge API Gateway / Vercel Edge]
-    Client --> |WebSocket| NodeWS[Node.js WebSocket Server]
-    
-    API_Gateway --> NodeWS
-    API_Gateway --> FastAPIML[FastAPI AI/ML Service]
-    
-    NodeWS --> |Cache/Leaderboard| Redis[(Redis Priority Queues)]
-    NodeWS --> |Transactional Data| Postgres[(PostgreSQL)]
-    NodeWS --> |Question Bank| Mongo[(MongoDB)]
-    
-    FastAPIML --> |Predictive Models| XGBoost[XGBoost Question Predictor]
-    FastAPIML --> |GenAI Lifeline| Gemini(LangChain + Gemini API)
-    
-    Postgres --> |Batch ETL| Hadoop[Hadoop/Spark Analytics Engine]
-    Mongo --> |Batch ETL| Hadoop
-```
-
-### Core Technologies
-- **Frontend Layer**: ReactJS, TailwindCSS, Framer Motion (for dynamic transitions, money tree animations). Atomic Design pattern.
-- **Real-Time Engine**: Node.js (Express), WebSockets, Redis (ZSETs for distributed leaderboards).
-- **AI/ML Layer**: Python (FastAPI). Integrates Random Forest/XGBoost for question difficulty prediction and LangChain/Gemini for the "Expert Advice" generative AI lifeline.
-- **Persistence Layer**:
-  - `PostgreSQL`: Financials, Wallets, User state, Transactional Ledgers.
-  - `MongoDB`: Dynamic JSON-schema Question Bank.
-- **Big Data Analytics**: Hadoop & Apache Spark for asynchronous processing of player behavior logs.
+[![Next.js](https://img.shields.io/badge/Frontend-Next.js_15-000000?logo=next.js)](https://nextjs.org)
+[![LangChain](https://img.shields.io/badge/AI_Engine-LangChain-121212?logo=langchain)](https://langchain.com)
+[![FastAPI](https://img.shields.io/badge/Microservice-FastAPI-009688?logo=fastapi)](https://fastapi.tiangolo.com)
+[![Framer Motion](https://img.shields.io/badge/UI_Animations-Framer_Motion-FF0055?logo=framer)](https://framer.com/motion)
+[![Web Audio API](https://img.shields.io/badge/Audio-Web_Audio_API-orange)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
 
 ---
 
-## 🧠 Core Algorithms (DSA & AI Integration)
+## 🎓 Technical Alignment (Year 2: Achieve)
 
-1. **Risk Assessment Engine (Dynamic Programming)**:
-   - Evaluates the probability of a user answering a given question correctly based on their past category performance, available lifelines, and the current question's static ML predicted difficulty.
-   - Maximizes the "Walk Away vs Play" Expected Value using value-iteration DP matrices.
+Built as part of an **Advanced Industry-First Curriculum**, Neural KBC showcases mastery in complex distributed architectures and data analytics:
 
-2. **Hint Generation Engine (Backtracking)**:
-   - For a given 4-option question, dynamically constructs logical reasoning paths to eliminate options. Uses backtracking to generate sequence trees that guide the player toward the answer without explicitly revealing it immediately.
-
-3. **Global Leaderboards (Redis Sorted Sets)**:
-   - `ZADD leaderboard <score> <player_id>`: Inserts and updates player scores in real-time.
-   - `ZREVRANGE`: Fetches top N players globally in $O(\log N + M)$ time.
-
-4. **Predictive Question Sourcing (XGBoost)**:
-   - An ML pipeline that analyzes global success rates. Questions are dynamically mapped to a difficulty factor $D ∈ [0, 100]$ via regression to continuously calibrate the money tree scaling and adjust player specific difficulty based on Elo rating.
+- **Big Data & Spark**: End-to-end ETL pipeline using **Apache Spark** ([spark_analytics.py](file:///spark_analytics.py)) for real-time gameplay pattern analysis.
+- **Mathematics for AI**: Implements **XGBoost-based difficulty prediction** algorithms to assess question complexity in real-time.
+- **Advanced Programming**: High-performance game engine utilizing asynchronous proctored state management.
+- **Systems Engineering**: Procedural audio synthesis using raw Web Audio API oscillators, eliminating the need for static assets.
 
 ---
 
-## 🛠 API Documentation (OpenAPI Overview)
+## 🏗️ Neural Architecture
 
-The platform follows a strict REST paradigm combined with Pub/Sub through WS. Full Swagger documentation is automatically generated by FastAPI at `/api/docs`.
+Neural KBC is not just a quiz app; it's a **"Play Along" ecosystem** built for the decentralized era:
 
-### REST Highlights (FastAPI / Node.js Core)
-- **`GET /api/v1/auth/session`** - Instantiates a secure gameplay JWT session.
-- **`POST /api/v1/game/lifeline/expert`** - Triggers the LLM agent via FastAPI.
-  - *Payload*: `{ "question_id": "uuid", "user_context": {...} }`
-  - *Response*: `{ "suggestion": "Based on historical precedents...", "confidence": 0.89 }`
-- **`GET /api/v1/game/risk-profile`** - Computes DP matrix for current node. Returns risk-adjusted continuation vectors.
-
-### WebSocket Highlights
-- **`ws://api.neural-kbc.in/v1/playstream`**
-  - **`publish:question_tick`**: Broadcasts server-side countdown timers to prevent client-side latency hacks.
-  - **`publish:leaderboard_tick`**: Pushes global state ranking deltas powered by Redis Streams.
+1.  **Orchestration Layer (Next.js 15):** The central hub managing game state, real-time proctoring, and UI rendering.
+2.  **AI Reasoning (Gemini + LangChain):** Dynamically generates adaptive difficulty questions across 9 complex domains (Quantum Mechanics, Cryptography, etc.).
+3.  **Real-time Services (Socket.io):** Powers the peer-to-peer "Duel Mode" and global leaderboard synchronization.
+4.  **Audio Engine (Procedural):** Uses raw Web Audio API oscillators to generate real-time atmospheric SFX without external assets.
+5.  **Analytics Layer (XGBoost):** Predicts win probabilities and assesses question difficulty in real-time.
 
 ---
 
-## 🚀 Setup & Execution Guide
+## ✨ Flagship Features
 
-### Prerequisites
-- Node.js >= 20.x, Python >= 3.10
-- PostgreSQL >= 16, MongoDB >= 7, Redis Stack
-- Vercel CLI (for Edge local simulation)
+| Feature | Technical Implementation |
+|---|---|
+| 🎙️ **Voice Synthesis** | Indian-localized VoiceEngine using Web Speech API for immersive hosting. |
+| 🔈 **Procedural Synth** | Real-time oscillator-based SFX (Sine/Square/Sawtooth) for high-fidelity engagement. |
+| 🤖 **AI Lifelines** | **Oracle** (LLM expert), **Cluster** (Predictive hints), and **Split** (Algorithmic 50/50). |
+| 💎 **ETH Prize Ladder** | Real-time progress tracking with automated ETH-denominated rewards (0.05 to 10,000 ETH). |
+| 👁️ **Proctoring Engine** | Real-time violation tracking (tab switching, focus loss) with shaking screen penalties. |
+| 📈 **Dynamic Search** | High-performance search interface for exploring knowledge domains. |
 
-### 1. Environment Configuration
-Copy the sample environment manifest in each microservice:
+---
+
+## 🛠️ Modern Tech Stack
+
+- **Core:** React 19, Next.js 15, TypeScript
+- **AI/LLM:** Google Gemini AI, LangChain (Core & Google GenAI)
+- **Backend:** FastAPI (Python), Node.js (Realtime Service)
+- **Animations:** Framer Motion (Cyberpunk/Glassmorphism theme)
+- **Audio:** Web Audio API (Master-Tier Audio Synth)
+- **Deployment:** Vercel (Edge Runtime ready)
+
+---
+
+## 📂 Project Structure
+
 ```bash
-cp .env.example .env
+├── web/                # Next.js 15 App (UI, Game Engine, Audio, Voice)
+├── ai-service/         # FastAPI Python service (Difficulty Prediction, Hints)
+├── realtime-service/   # Node.js WebSocket server for Multi-mode & Leaderboards
+├── docs/               # Architecture and Deployment specifications
+└── spark_analytics.py  # Data processing for game performance insights
 ```
-Ensure you provide your `GEMINI_API_KEY` in the FastAPI `.env`.
 
-### 2. Bootstrapping Databases
-```bash
-npm run db:migrate    # Runs Prisma/Sequelize routines for PG
-npm run db:seed       # Dumps base question bank to Mongo
-```
+---
 
-### 3. Launching Microservices
-**Node.js Core App Server:**
-```bash
-cd services/core-gateway
-npm i && npm run dev
-```
+## 🚀 Deployment Mode
 
-**FastAPI Machine Learning Module:**
+The application is architected for **Vercel Edge Runtime** to minimize latency during AI question generation.
+
 ```bash
-cd services/ai-engine
-python -m venv venv && source venv/bin/activate
+# Start the Web Engine
+cd web
+npm install
+npm run dev
+
+# Launch AI Microservice
+cd ai-service
 pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-```
-
-**React Client App:**
-```bash
-cd web-client
-npm i && npm run dev
+python main.py
 ```
 
 ---
 
-## 📈 Contribution & Git Flow
+## 👨‍💻 Vision
+**Ayush Shukla** — [github.com/ayushshukla1807](https://github.com/ayushshukla1807)
 
-Adhere to our strict zero-space Git hygiene model:
-- `chore/*` : Config, build scripts
-- `feat/*` : New product elements
-- `fix/*` : Bug resolution
-- `ml/*` : Model tuning or pipeline integrations
+---
 
-Automated Prettier/ESLint hooks run pre-commit. **Merge via PRs only.**
+## 📄 License
+MIT License
