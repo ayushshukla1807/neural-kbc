@@ -673,482 +673,275 @@ export default function NeuralArena() {
   };
 
   return (
-    <div onMouseMove={handleMouseMove} className={`min-h-screen flex flex-col items-center justify-center bg-[#030305] text-white font-sans overflow-hidden select-none relative ${isShaking ? 'animate-shake' : ''}`}>
-
-      {/* ── Confetti Canvas ── */}
-      <canvas ref={confettiRef} className="fixed inset-0 z-[9998] pointer-events-none" />
-
-      {/* ── Ambient hue radial glow (shifts with level) ── */}
-      <div className="fixed inset-0 z-0 pointer-events-none" style={{
-        background: `radial-gradient(ellipse 60% 40% at 50% 50%, hsla(${ambientHue},80%,40%,0.07) 0%, transparent 70%)`
-      }} />
-
-      {/* ── Hot-streak aura (streak ≥ 5) ── */}
-      {streak >= 5 && (
-        <div className="fixed inset-0 z-[50] pointer-events-none" style={{
-          boxShadow: 'inset 0 0 80px rgba(255,140,0,0.25), inset 0 0 30px rgba(255,200,0,0.15)',
-          animation: 'hotseat-pulse 1.5s ease-in-out infinite'
-        }} />
-      )}
-
-      {/* ── Full-screen flash ── */}
-      {screenFlash && (
-        <div className={`fixed inset-0 z-[9997] pointer-events-none ${
-          screenFlash === 'correct' ? 'bg-green-500/25 flash-green' :
-          screenFlash === 'milestone' ? 'bg-yellow-400/30 flash-green' :
-          'bg-red-500/25 flash-red'
-        }`} />
-      )}
-
-      {/* ── Milestone text overlay (Feature 7) ── */}
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans relative overflow-hidden transition-all duration-1000" style={{ backgroundColor: `hsl(${ambientHue}, 20%, 4%)` }}>
+      
+      {/* Cinematic Ambient Glow */}
+      <div className="ambient-glow" />
+      
+      {/* ── Feature 1: Final Answer confirmation modal ── */}
       <AnimatePresence>
-        {milestoneText && (
-          <motion.div
-            initial={{ scale: 2, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.5, opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            className="fixed inset-0 z-[9996] pointer-events-none flex items-center justify-center"
-          >
-            <span className="text-[5rem] font-black tracking-tighter text-gold-400 glow-text-gold">{milestoneText}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── Question splash (Feature 3) ── */}
-      <AnimatePresence>
-        {showQuestionSplash && (
-          <motion.div
-            key={`splash-${level}`}
-            initial={{ scale: 3, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.6, opacity: 0 }}
-            transition={{ duration: 0.35, ease: [0.34, 1.56, 0.64, 1] }}
-            className="fixed inset-0 z-[9995] pointer-events-none flex items-center justify-center"
-          >
-            <span className="font-black font-mono text-[8rem] text-white/10 tracking-tighter" style={{ textShadow: '0 0 120px rgba(0,240,255,0.5)' }}>
-              Q.{String(level + 1).padStart(2, '0')}
-            </span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── Final Answer Modal (Feature 1) ── */}
-      <AnimatePresence>
-        {pendingAnswer !== null && q && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9990] flex items-center justify-center bg-black/70 backdrop-blur-sm"
-          >
-            <motion.div
-              initial={{ scale: 0.7, y: 40 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.7, y: 40 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-              className="glass-panel border border-gold-500/50 rounded-3xl p-12 text-center max-w-lg w-full shadow-[0_0_60px_rgba(212,160,23,0.4)]"
-            >
-              <p className="text-gold-400 font-mono text-sm tracking-[0.4em] uppercase mb-4">Your Answer</p>
-              <p className="text-3xl font-black text-white mb-2">
-                <span className="text-gold-400 mr-3">{['A','B','C','D'][pendingAnswer]}.</span>
-                {q.options[pendingAnswer]}
+        {pendingAnswer !== null && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-950/80 backdrop-blur-xl">
+            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} className="glass-panel-sleek rounded-[2.5rem] p-12 text-center max-w-lg w-full border border-white/5 shadow-2xl">
+              <p className="text-zinc-500 font-medium tracking-widest uppercase mb-4 text-xs">Verify Selection</p>
+              <p className="text-3xl font-medium text-white mb-3 tracking-tight">
+                <span className="text-amber-500 mr-3">{['A','B','C','D'][pendingAnswer]}.</span>
+                {q?.options[pendingAnswer]}
               </p>
-              <p className="text-white/40 font-light text-sm mb-8">Is this your final answer?</p>
-              <div className="flex gap-4 justify-center mb-8">
-                <motion.div
-                  key={finalCountdown}
-                  initial={{ scale: 1.5 }}
-                  animate={{ scale: 1 }}
-                  className="text-6xl font-black font-mono text-red-400 glow-text-red"
-                >{finalCountdown}</motion.div>
+              <p className="text-zinc-400 font-light text-sm mb-10">Is this your final answer?</p>
+              <div className="flex gap-4 justify-center mb-10">
+                <motion.div key={finalCountdown} initial={{ scale: 1.2, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-5xl font-mono text-amber-500 drop-shadow-[0_0_12px_rgba(245,158,11,0.5)]">{finalCountdown}</motion.div>
               </div>
               <div className="flex gap-4 justify-center">
-                <button
-                  onClick={() => setPendingAnswer(null)}
-                  className="px-8 py-3 border border-white/20 rounded-2xl text-white/60 hover:text-white hover:border-white/50 transition-all text-sm font-bold tracking-widest"
-                >CHANGE</button>
-                <button
-                  onClick={() => {
+                <button onClick={() => setPendingAnswer(null)} className="px-8 py-3 rounded-2xl text-zinc-400 hover:text-white hover:bg-white/5 transition-all text-sm font-medium tracking-wide">Cancel</button>
+                <button onClick={() => {
                     const idx = pendingAnswer;
                     setPendingAnswer(null);
                     AudioEngine.lock();
                     setSelectedOpt(idx);
                     pushLog(`VECTOR OPTION ${String.fromCharCode(65 + idx)} LOCKED.`);
-                    const correct = idx === q.ans;
+                    const correct = idx === q?.ans;
                     const elapsed = (Date.now() - questionStartTime) / 1000;
                     setConfidenceScore(Math.max(5, Math.round(100 - (elapsed / 60) * 90)));
                     setIsCorrect(correct);
                     if (!correct) { setGlitchCard(idx); setTimeout(() => setGlitchCard(null), 1000); }
                     setTimeout(() => executeCryptographicCheck(correct, level + 1), 1500);
-                  }}
-                  className="px-8 py-3 bg-gold-500 hover:bg-gold-400 rounded-2xl text-black font-black tracking-widest text-sm transition-all shadow-[0_0_20px_rgba(212,160,23,0.5)]"
-                >LOCK IN</button>
+                  }} className="px-8 py-3 bg-white hover:bg-zinc-200 text-zinc-900 rounded-2xl font-bold tracking-wide text-sm transition-all shadow-[0_0_24px_rgba(255,255,255,0.2)] hover:shadow-[0_0_32px_rgba(255,255,255,0.4)]">Lock In</button>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── Floating LDR Petals ── */}
-      {[0,1,2,3,4,5,6,7].map(i => (
-        <div key={i} className="petal" style={{
-          left:`${8+i*12}%`,
-          animationDuration:`${9+i*1.7}s`,
-          animationDelay:`${i*1.2}s`,
-          width:`${5+(i%4)*3}px`, height:`${5+(i%4)*3}px`
-        }} />
-      ))}
+      {/* Confetti logic preserved underneath although minimal visual */}
+      <canvas ref={confettiRef} className="fixed inset-0 z-[9998] pointer-events-none opacity-50" />
 
-      <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none mix-blend-screen opacity-100" />
-      <div className="absolute inset-0 bg-mesh-grid z-0 opacity-10 pointer-events-none"></div>
-
-      <div className="absolute bottom-6 left-6 z-50 pointer-events-none opacity-60 flex flex-col justify-end w-96 h-40 overflow-hidden gap-1">
-        {hudLogs.map((log, idx) => (
-          <motion.span key={idx} initial={{opacity:0, x:-10}} animate={{opacity:1, x:0}} className={`font-mono text-[10px] tracking-widest ${log.includes("ERR") || log.includes("BREACH") || log.includes("REJECTED") ? 'text-red-500 font-bold' : 'text-neon-blue'}`}>{log}</motion.span>
-        ))}
-      </div>
-
-      <AnimatePresence>
-        {gameState !== 'lobby' && playMode === "solo" && (
-          <motion.div initial={{opacity: 0, x: 50}} animate={{opacity: 1, x: 0}} className="absolute top-6 right-6 z-40 w-64 glass-panel border border-red-500/30 rounded-xl overflow-hidden shadow-[0_0_20px_rgba(255,0,0,0.1)]">
-            <div className="bg-red-500/10 border-b border-red-500/30 px-3 py-1.5 flex items-center justify-between">
-              <span className="text-[9px] font-mono font-bold text-red-400 tracking-widest uppercase">Live Telemetry CCTV</span>
-              <div className="w-2 h-2 rounded-full bg-red-500 animate-ping"></div>
-            </div>
-            <div className="relative w-full h-36 bg-black flex items-center justify-center">
-               {!cameraActive && <span className="text-red-500/50 font-mono text-[10px] uppercase">No Video Feed / Blind DOM Overridden</span>}
-               <video ref={videoRef} autoPlay playsInline muted className={`absolute inset-0 w-full h-full object-cover filter contrast-[1.2] saturate-0 brightness-[1.1] opacity-70 ${isShaking ? 'animate-shake' : ''}`} style={{ mixBlendMode: 'screen' }} />
-               <div className="absolute inset-0 pointer-events-none bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEElEQVQIW2NkYGD4z8DAwMgAA0wAMxn8NvgAAAAASUVORK5CYII=')] opacity-30"></div>
-            </div>
-            <div className="bg-black/80 px-3 py-3 flex flex-col gap-1 text-[8px] font-mono text-gray-400">
-               <div className="flex justify-between"><span>CORES:</span> <span className="text-neon-blue">{hwData.cpu}</span></div>
-               <div className="flex justify-between"><span>CAPACITY:</span> <span className="text-neon-blue">{hwData.ram}GB</span></div>
-               <div className="flex justify-between"><span>BATTERY:</span> <span className={`${hwData.battery === 'N/A' || parseInt(hwData.battery) > 30 ? 'text-neon-blue' : 'text-red-500 animate-pulse'}`}>{hwData.battery}</span></div>
-               <div className="flex justify-between"><span>COORD:</span> <span className="text-gold-400">{hwData.lat}, {hwData.lon}</span></div>
-            </div>
-            <div className="h-16 w-full bg-red-900/5 mt-1 border-t border-red-500/20 relative flex items-end overflow-hidden p-1">
-              <span className="absolute top-1 left-2 text-[8px] font-mono text-white/40">AI FOCUS TELEMETRY // LANGCHAIN CO-PROMPT</span>
-              <svg viewBox="0 0 100 20" className="w-full h-full preserve-aspect-none pt-4" style={{ overflow: 'visible' }}>
-                  <polyline fill="none" stroke="rgba(0, 240, 255, 0.8)" strokeWidth="1.5" points={focusHistory.map((val, i) => `${(i / (Math.max(1, focusHistory.length - 1))) * 100},${20 - (val / 100 * 20)}`).join(' ')} style={{ filter: 'drop-shadow(0px 0px 4px rgba(0,240,255,0.5))' }} />
-                  <path fill="rgba(0, 240, 255, 0.1)" d={`M0,20 ${focusHistory.map((val, i) => `L${(i / (Math.max(1, focusHistory.length - 1))) * 100},${20 - (val / 100 * 20)}`).join(' ')} L100,20 Z`} />
-              </svg>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <motion.div animate={{ rotateX: mousePos.y, rotateY: mousePos.x }} transition={{ type: "spring", stiffness: 100, damping: 30 }} style={{ transformStyle: 'preserve-3d' }} className="relative z-10 w-full h-full flex flex-col items-center justify-center">
+      <motion.div className="relative z-10 w-full h-full flex flex-col items-center justify-center">
+        
+        {/* LOBBY */}
         {gameState === "lobby" && (
-          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.8 }} className="z-10 flex flex-col items-center glass-panel p-10 rounded-[2.5rem] max-w-7xl text-center border-t border-l border-white/20 shadow-[-20px_20px_60px_rgba(0,0,0,0.8)] relative overflow-hidden">
-            {/* Sweeping spotlight beams */}
-            <div className="spotlight-beam" />
-            <div className="spotlight-beam" />
-            <div className="spotlight-beam" />
-            <h1 className="shimmer-text text-6xl md:text-[6rem] font-black tracking-tighter mb-2 leading-none relative z-10" style={{ transform: 'translateZ(60px)' }}>NEURAL ARENA</h1>
-            <p className="text-sm text-gray-500 tracking-[0.3em] uppercase mb-1 relative z-10">Kaun Banega Crorepati &middot; AI Edition</p>
-            <p className="text-sm text-gray-600 mb-6 italic relative z-10">&ldquo;I&apos;ve been waiting for you... in the dark.&rdquo;</p>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="z-10 flex flex-col items-center max-w-6xl text-center relative w-full px-6">
+            <h1 className="shimmer-text-clean text-5xl md:text-[5.5rem] font-medium tracking-tight mb-4 relative z-10">Neural Arena</h1>
+            <p className="text-sm text-zinc-500 tracking-[0.2em] uppercase mb-12 relative z-10 font-medium">The Next Generation of Competitive Knowledge</p>
             
             <ModeSelector onSelect={verifyProctoring} />
 
-            {/* Voice Picker — clean select dropdown */}
-            {availableVoices.length > 0 && (
-              <div className="w-full mt-4 flex items-center gap-4 px-5 py-3 glass-panel border border-white/10 rounded-2xl" style={{ transform: 'translateZ(30px)' }}>
-                <span className="text-neon-purple font-black tracking-widest text-xs uppercase whitespace-nowrap">🎙️ Host Voice</span>
-                <select
-                  value={selectedVoiceName}
-                  onChange={e => handleVoiceChange(e.target.value)}
-                  className="flex-1 bg-black/60 border border-white/10 text-white text-sm rounded-xl px-3 py-2 font-mono focus:outline-none focus:border-neon-purple/60 transition-all"
-                >
-                  {availableVoices.map(name => (
-                    <option key={name} value={name}>{name}</option>
-                  ))}
-                </select>
-                <button
-                  onClick={() => VoiceEngine.speak("I've been waiting... like a dream you almost remember.")}
-                  className="px-4 py-2 bg-neon-purple/20 hover:bg-neon-purple/40 border border-neon-purple/50 text-neon-purple rounded-xl font-bold tracking-widest text-[10px] uppercase transition-all whitespace-nowrap"
-                >▶ Test</button>
-              </div>
-            )}
+            <div className="flex flex-col md:flex-row gap-4 w-full max-w-4xl mt-8">
+              {availableVoices.length > 0 && (
+                <div className="flex-1 flex items-center gap-4 px-6 py-4 glass-panel-sleek rounded-2xl relative">
+                  <span className="text-zinc-400 font-medium tracking-widest text-[10px] uppercase whitespace-nowrap">Voice Agent</span>
+                  <select value={selectedVoiceName} onChange={e => handleVoiceChange(e.target.value)} className="flex-1 bg-transparent border-none text-zinc-100 text-sm font-mono focus:outline-none appearance-none cursor-pointer">
+                    {availableVoices.map(name => <option key={name} value={name} className="bg-zinc-900 text-white">{name}</option>)}
+                  </select>
+                </div>
+              )}
 
-            {/* Growth Hook: Referral System */}
-            <div className="w-full mt-4 glass-panel border border-dashed border-neon-blue/30 p-5 rounded-2xl flex items-center justify-between" style={{ transform: 'translateZ(30px)' }}>
-              <div className="flex flex-col text-left">
-                <span className="text-neon-blue font-black tracking-widest text-xs mb-1 uppercase">Native Yield Multiplication</span>
-                <span className="text-gray-500 font-mono text-[10px]">Invite peers to multiply ETH withdrawals automatically. [AYUSH_0X_ACTIVE]</span>
+              <div className="flex-1 flex items-center justify-between px-6 py-4 glass-panel-sleek rounded-2xl">
+                <span className="text-zinc-400 font-medium tracking-widest text-[10px] uppercase">Invite Link</span>
+                <button onClick={copyRefLink} className="text-zinc-100 hover:text-white text-xs font-mono font-bold uppercase transition-colors">{referralCopied ? 'Copied' : 'Copy'}</button>
               </div>
-              <button onClick={copyRefLink} className="px-5 py-2.5 bg-neon-blue/20 hover:bg-neon-blue border border-neon-blue text-white rounded-xl font-bold tracking-widest text-[10px] uppercase transition-all duration-300">
-                {referralCopied ? 'Link Copied!' : 'Copy Invite'}
-              </button>
             </div>
           </motion.div>
         )}
 
+        {/* ONBOARDING */}
         {gameState === "onboarding" && (
-          <motion.div initial="hidden" animate="visible" variants={containerVariants} className="z-10 glass-panel p-12 rounded-[2.5rem] max-w-5xl w-full text-center mx-4 relative overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-            <motion.h2 variants={itemVariants} className="text-5xl font-black glow-text-blue tracking-tight mb-2 relative z-10">Neural Matrix Configuration</motion.h2>
-            <motion.p variants={itemVariants} className="text-gray-400 mb-12 text-xl font-light relative z-10">Select exactly 3 deep-tech vectors for the LLM to process.</motion.p>
+          <motion.div initial="hidden" animate="visible" variants={containerVariants} className="z-10 w-full max-w-4xl px-6 text-center">
+            <motion.h2 variants={itemVariants} className="text-4xl font-medium tracking-tight text-white mb-3 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">Configure Sandbox</motion.h2>
+            <motion.p variants={itemVariants} className="text-zinc-400 mb-12 text-sm font-light uppercase tracking-widest">Select 3 technical domains</motion.p>
             
-            <motion.div variants={containerVariants} className="flex flex-wrap justify-center gap-4 mb-12 relative z-10">
+            <motion.div variants={containerVariants} className="flex flex-wrap justify-center gap-3 mb-10">
               {availableDomains.map(domain => {
                 const selected = selectedDomains.includes(domain);
-                const isHacked = domain.includes("OmniGuard");
-                return ( <motion.button variants={itemVariants} whileHover={{ scale: 1.05, y: -5 }} whileTap={{ scale: 0.95 }} key={domain} onClick={() => toggleDomain(domain)} onMouseEnter={() => AudioEngine.hover()} className={`px-6 py-4 rounded-2xl font-bold tracking-wide transition-all duration-300 ${selected ? 'bg-gradient-to-br from-neon-purple/80 to-neon-blue/80 border border-white/40 text-white shadow-[0_10px_30px_rgba(138,43,226,0.5)]' : `bg-black/50 border border-white/10 ${isHacked ? 'text-red-500 border-red-500/50 glow-text-red' : 'text-gray-400'} hover:border-white/30 backdrop-blur-md`}`}> {domain} </motion.button> )
+                return ( <motion.button variants={itemVariants} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} key={domain} onClick={() => toggleDomain(domain)} className={`px-6 py-3 rounded-2xl font-medium tracking-wide transition-all text-sm border ${selected ? 'bg-white text-zinc-950 border-white shadow-[0_0_24px_rgba(255,255,255,0.4)]' : 'bg-surface-100 border-white/5 text-zinc-400 hover:bg-surface-200 hover:border-white/20'}`}> {domain} </motion.button> )
               })}
             </motion.div>
             
-            <motion.button variants={itemVariants} onClick={constructGenerativeMatrix} disabled={selectedDomains.length !== 3} className={`px-14 py-5 rounded-full font-black tracking-[0.2em] uppercase transition-all ${selectedDomains.length === 3 ? 'bg-white text-black shadow-[0_0_50px_rgba(255,255,255,0.8)] hover:scale-105' : 'bg-white/10 text-white/30 cursor-not-allowed'}`}>
-              Trigger Async Generator
+            <motion.button variants={itemVariants} onClick={constructGenerativeMatrix} disabled={selectedDomains.length !== 3} className={`px-10 py-4 rounded-full font-bold tracking-widest text-xs uppercase transition-all shadow-[0_4px_24px_rgba(0,0,0,0.5)] ${selectedDomains.length === 3 ? 'bg-amber-500 text-zinc-950 hover:bg-amber-400 hover:shadow-[0_4px_30px_rgba(245,158,11,0.5)]' : 'bg-surface-200 text-zinc-600 cursor-not-allowed border border-white/5'}`}>
+              Initialize Matrix
             </motion.button>
           </motion.div>
         )}
 
+        {/* LOADING LLM */}
         {gameState === "loading_llm" && (
-          <div className="z-10 flex flex-col items-center">
-            <div className="w-32 h-32 border-[6px] border-white/10 border-t-neon-blue rounded-full animate-spin mb-10 shadow-[0_0_50px_rgba(0,240,255,0.3)] text-center flex items-center justify-center font-mono font-black text-neon-blue">AI</div>
-            <p className="text-2xl animate-pulse glow-text-blue text-center font-mono font-light tracking-wide">
-              [SYSTEM_LINK]: Synthesizing infinite permutations...
-            </p>
-          </div>
-        )}
-
-        {gameState === "decrypting" && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-3xl">
-            <div className="flex flex-col items-center">
-              <div className="w-80 h-80 border-4 border-dashed border-red-500 rounded-full animate-[spin_2s_linear_infinite] flex items-center justify-center mb-8 relative">
-                <div className="absolute inset-0 bg-red-500/20 rounded-full animate-pulse"></div>
-                <div className="absolute inset-0 border-8 border-t-red-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-[spin_1s_linear_infinite_reverse]"></div>
-                <span className="text-5xl text-white font-black font-mono">HASH</span>
-              </div>
-              <h2 className="text-4xl font-mono text-gray-400 mb-2 glitch-hover cursor-pointer">VERIFYING BLOCKCHAIN LEDGER</h2>
-              <p className="text-[5rem] font-mono font-black text-red-500 drop-shadow-[0_0_30px_red] tracking-widest">{decryptionHash}</p>
-            </div>
-          </div>
-        )}
-
-         {["eliminated", "victorious", "extracted"].includes(gameState) && (
-          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="z-10 glass-panel p-20 rounded-[3rem] border border-red-500/30 max-w-4xl w-full text-center shadow-[0_0_100px_rgba(255,0,0,0.15)] relative overflow-hidden flex flex-col items-center">
-            <div className={`absolute top-0 left-0 w-full h-full ${gameState==='eliminated'? 'bg-red-500/10' : 'bg-gold-500/10'}`}></div>
-            <h1 style={{ transform: 'translateZ(30px)' }} className={`text-6xl md:text-7xl font-black mb-6 tracking-tighter relative z-10 ${gameState==='eliminated' ? 'text-red-500 glow-text-red glitch-hover' : 'text-gold-400 glow-text-gold drop-shadow-[0_0_20px_rgba(212,160,23,0.8)]'}`}>
-              {playMode?.startsWith("duel") ? (p1Progress > p2Progress || p1Score > p2Score ? "PLAYER 1 WINS" : "PLAYER 2 WINS") : gameState === 'eliminated' ? 'SYSTEM LIQUIDATION' : 'PROTOCOL CLEAR'}
-            </h1>
-            
-            {playMode?.startsWith("duel") ? (
-               <div className="flex w-full gap-8 relative z-10 mb-16 justify-center" style={{ transform: 'translateZ(40px)' }}>
-                 <div className="glass-panel p-8 rounded-3xl border border-neon-purple/50 bg-neon-purple/10 flex flex-col items-center w-64">
-                    <span className="text-neon-purple font-black tracking-widest mb-2">PLAYER 1</span>
-                    <span className="text-6xl font-mono text-white glow-text-blue">{playMode === "duel_race" ? p1Progress : p1Score}</span>
-                 </div>
-                 <div className="flex flex-col justify-center font-black text-4xl text-gray-600 px-4">VS</div>
-                 <div className="glass-panel p-8 rounded-3xl border border-gold-500/50 bg-gold-500/10 flex flex-col items-center w-64">
-                    <span className="text-gold-400 font-black tracking-widest mb-2">PLAYER 2</span>
-                    <span className="text-6xl font-mono text-white glow-text-gold">{playMode === "duel_race" ? p2Progress : p2Score}</span>
-                 </div>
-               </div>
-            ) : (
-               <>
-                 <p className="text-2xl text-gray-400 font-light mb-2 relative z-10 uppercase tracking-widest">{playMode === 'interview' ? 'Career Readiness Score' : 'Final Ledger Balance'}</p>
-                 <p style={{ transform: 'translateZ(40px)' }} className="text-7xl font-mono text-white mb-16 glow-text-blue relative z-10 drop-shadow-[0_0_10px_rgba(0,240,255,0.8)]">{playMode === 'interview' ? `${interviewXP} XP` : walletBalance}</p>
-               </>
-            )}
-
-            <button onClick={() => window.location.reload()} onMouseEnter={()=>AudioEngine.hover()} className="px-10 py-5 border border-white/20 rounded-full text-white font-bold tracking-[0.2em] text-sm uppercase hover:bg-white hover:text-black transition-all relative z-10 shadow-[0_0_30px_rgba(255,255,255,0.2)]">Return to Main Sector</button>
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="z-10 flex flex-col items-center">
+            <div className="spinner-ring mb-8 animate-spin text-amber-500"></div>
+            <p className="text-zinc-400 text-sm font-mono tracking-widest uppercase">Synthesizing Datasets</p>
           </motion.div>
         )}
 
-        {q && gameState === "active" && (
-          <div className="z-10 flex flex-col w-full h-full max-w-[1400px] mx-auto px-6 py-8 relative">
+        {/* DECRYPTING HASH */}
+        {gameState === "decrypting" && (
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/90 backdrop-blur-2xl">
+            <div className="flex flex-col items-center">
+              <div className="spinner-ring mb-10 border-t-amber-500"></div>
+              <p className="text-zinc-500 text-xs font-medium tracking-[0.3em] uppercase mb-4">Verifying Block</p>
+              <p className="text-3xl font-mono text-zinc-200 tracking-widest">{decryptionHash}</p>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ENDGAME STATES */}
+         {["eliminated", "victorious", "extracted"].includes(gameState) && (
+          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="z-10 glass-panel-sleek border border-white/5 p-16 rounded-[3rem] max-w-3xl w-full text-center relative overflow-hidden flex flex-col items-center">
+            <h1 className="text-4xl md:text-5xl font-medium mb-4 tracking-tight relative z-10 text-white">
+              {playMode?.startsWith("duel") ? (p1Progress > p2Progress || p1Score > p2Score ? "Player 1 Wins" : "Player 2 Wins") : gameState === 'eliminated' ? 'Simulation Terminated' : 'Protocol Complete'}
+            </h1>
             
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-4 pb-6 relative">
-              <div className="flex gap-3 items-center">
-                <div className="glass-panel px-6 py-3 rounded-full flex items-center gap-4 border border-neon-blue/30 bg-neon-blue/5 shadow-[0_0_30px_rgba(0,240,255,0.15)] backdrop-blur-md">
-                  <span className="text-neon-blue font-black tracking-[0.2em] text-sm">{playMode === 'interview' ? 'XP QUOTA:' : 'SECURE LEDGER:'}</span>
-                  <span className="font-mono text-white text-xl font-bold drop-shadow-[0_0_8px_white]">{playMode === 'interview' ? `${interviewXP} XP` : walletBalance}</span>
-                </div>
-                {/* 🔥 Streak Counter */}
-                {streak >= 2 && (
-                  <motion.div
-                    key={streak}
-                    initial={{scale:0.5,opacity:0}} animate={{scale:1,opacity:1}} transition={{type:"spring",stiffness:400}}
-                    className="flex items-center gap-1.5 glass-panel px-4 py-2 rounded-full border border-orange-500/40 bg-orange-500/10"
-                  >
-                    <span className="streak-fire text-xl">{streak >= 5 ? '🔥🔥🔥' : streak >= 3 ? '🔥🔥' : '🔥'}</span>
-                    <span className="font-black text-orange-400 text-sm tracking-widest">{streak} STREAK</span>
-                  </motion.div>
-                )}
-                {/* Level pill */}
-                <div className="glass-panel px-4 py-2 rounded-full border border-white/10 flex items-center gap-2">
-                  <span className="text-white/40 text-[10px] font-mono uppercase tracking-widest">LVL</span>
-                  <span className="text-white font-black font-mono text-sm">{String(level+1).padStart(2,'0')} / 16</span>
-                  <div className="w-16 h-1 bg-white/10 rounded-full overflow-hidden ml-1">
-                    <div className="h-full bg-gradient-to-r from-neon-purple to-neon-blue transition-all duration-500" style={{width:`${((level+1)/16)*100}%`}}/>
-                  </div>
-                </div>
-              </div>
+            {playMode?.startsWith("duel") ? (
+               <div className="flex w-full gap-8 relative z-10 mb-12 justify-center mt-8">
+                 <div className="px-10 py-8 rounded-3xl border border-white/5 bg-surface-100 flex flex-col items-center w-56">
+                    <span className="text-zinc-500 font-medium tracking-widest text-[10px] uppercase mb-3">Player 1</span>
+                    <span className="text-5xl font-mono text-white tracking-widest">{playMode === "duel_race" ? p1Progress : p1Score}</span>
+                 </div>
+                 <div className="flex flex-col justify-center font-light text-2xl text-zinc-600 px-2">VS</div>
+                 <div className="px-10 py-8 rounded-3xl border border-white/5 bg-surface-100 flex flex-col items-center w-56">
+                    <span className="text-amber-500/80 font-medium tracking-widest text-[10px] uppercase mb-3">Player 2</span>
+                    <span className="text-5xl font-mono text-white tracking-widest">{playMode === "duel_race" ? p2Progress : p2Score}</span>
+                 </div>
+               </div>
+            ) : (
+               <div className="my-10">
+                 <p className="text-xs text-zinc-500 font-medium uppercase tracking-[0.3em] mb-4">{playMode === 'interview' ? 'Career Score' : 'Final Ledger'}</p>
+                 <p className="text-6xl font-mono text-white tracking-tight">{playMode === 'interview' ? `${interviewXP} XP` : walletBalance}</p>
+               </div>
+            )}
 
-              {playMode === "duel_host" && (
-                <div className="flex gap-3 glass-panel px-6 py-3 rounded-full border border-gold-500/30">
-                   <span className="text-gold-400 font-mono text-xs font-bold uppercase tracking-widest animate-pulse">{hostRevealed ? `CORRECT: ${String.fromCharCode(65 + q.ans)}` : 'REVEAL: [SPACE]'}</span>
-                </div>
-              )}
+            <button onClick={() => window.location.reload()} className="mt-4 px-10 py-4 rounded-full bg-white text-zinc-900 font-bold tracking-widest text-[10px] uppercase hover:scale-105 transition-transform shadow-[0_4px_24px_rgba(255,255,255,0.2)]">Return Home</button>
+          </motion.div>
+        )}
 
-              {playMode === "duel_race" && (
-                <div className="flex-1 flex flex-col gap-2 max-w-sm px-8">
-                   <div className="flex justify-between items-end"><span className="text-[10px] text-neon-purple font-black">P1: {p1Progress}/16</span> <span className="text-[10px] text-gold-400 font-black">P2: {p2Progress}/16</span></div>
-                   <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden flex">
-                      <div className="h-full bg-neon-purple transition-all duration-500" style={{ width: `${(p1Progress/16)*100}%` }}></div>
-                      <div className="h-full bg-gold-400 opacity-20 transition-all duration-500" style={{ width: `${(p2Progress/16)*100}%` }}></div>
-                   </div>
-                </div>
-              )}
-
-               {playMode === "solo" && gameState === "active" && (
-                <div className="absolute right-6 top-24 z-50">
-                   <MoneyLadder currentLevel={level} prizeLadder={PRIZE_LADDER} mode={playMode} />
-                </div>
-              )}
-
-              {playMode === "solo" && (
-                <LifelinePanel lifelines={lifelines} onUse={useLifeline} disabled={selectedOpt !== null} />
-              )}
-
-              {playMode?.startsWith("duel") && (
-                <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-8 glass-panel px-8 py-2 rounded-full border border-white/20">
-                    <span className="font-mono font-black text-2xl text-neon-purple w-8 text-right">{p1Score}</span>
-                    <span className="text-xs text-gray-500 font-black tracking-[0.3em]">SCORE</span>
-                    <span className="font-mono font-black text-2xl text-gold-400 w-8 text-left">{p2Score}</span>
-                </div>
-              )}
-
-              {playMode === "solo" && (
-                <div className="flex gap-3">
-                  <button onClick={() => { VoiceEngine.speak("Leaving already? I knew you were born to run. Stay safe.", 0.65, 0.82); setGameState("extracted"); }} className="px-8 py-3 border border-red-500/50 bg-red-500/10 hover:bg-red-500/30 rounded-2xl text-xs font-black tracking-[0.2em] uppercase text-red-100 glow-text-red shadow-[0_0_20px_rgba(255,0,85,0.2)] hover:scale-105 transition-all">Withdraw</button>
-                </div>
-              )}
-            </header>
-
-            <div className="flex-1 flex flex-col justify-center items-center py-6 w-full relative">
-              {/* Timer — SVG Circular Ring */}
-              <div className="relative mb-6 flex items-center justify-center" style={{ transform: 'translateZ(50px)' }}>
-                <svg width="180" height="180" className="absolute" style={{ transform: 'rotate(-90deg)' }}>
-                  <circle cx="90" cy="90" r="78" stroke="rgba(255,255,255,0.05)" strokeWidth="6" fill="none" />
-                  <circle
-                    cx="90" cy="90" r="78"
-                    stroke={timer <= 10 ? '#ff2255' : timer <= 25 ? '#ffd700' : '#00f0ff'}
-                    strokeWidth="6" fill="none"
-                    strokeLinecap="round"
-                    strokeDasharray={`${2 * Math.PI * 78}`}
-                    strokeDashoffset={`${2 * Math.PI * 78 * (1 - timer / 90)}`}
-                    className="timer-ring-progress"
-                    style={{ filter: `drop-shadow(0 0 10px ${timer<=10?'#ff2255':timer<=25?'#ffd700':'#00f0ff'})` }}
-                  />
-                </svg>
-                {timer <= 10 && <div className="absolute inset-0 rounded-full bg-red-500/15 animate-[pulse_0.4s_infinite] blur-sm" />}
-                <span className={`text-[4.5rem] leading-none font-black font-mono tracking-tighter z-10 ${
-                  timer<=10 ? 'text-red-500 glow-text-red' : timer<=25 ? 'text-gold-400 glow-text-gold' : 'text-white'
-                }`}>{timer.toString().padStart(2,'0')}</span>
-              </div>
-
-              <AnimatePresence mode="wait">
-                <motion.div key={`block-${level}`} initial="hidden" animate="visible" exit={{ opacity: 0, scale: 0.95 }} variants={containerVariants} className="w-full flex flex-col items-center">
-                  <motion.div variants={itemVariants} style={{ transform: 'translateZ(30px)' }} className={`w-full max-w-6xl glass-panel hot-seat relative p-14 rounded-[3rem] border border-white/20 shadow-[0_40px_80px_rgba(0,0,0,0.8)] mb-8 overflow-hidden text-center bg-gradient-to-b from-white/5 to-transparent`}>
-                    {playMode === "duel_host" && !hostRevealed ? (
-                      <div className="flex flex-col items-center py-10">
-                        <span className="text-gray-500 font-mono text-sm mb-4 tracking-[0.5em] animate-pulse">ENCRYPTED FOR PLAYER 2</span>
-                        <div className="h-10 w-64 bg-white/5 rounded-full animate-pulse"></div>
-                      </div>
-                    ) : (
-                      <motion.h2
-                        key={`q-${level}`}
-                        initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} transition={{duration:0.5}}
-                        className="text-4xl md:text-[3.2rem] font-medium text-center leading-[1.4] text-white mt-4 tracking-tight drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)]"
-                      >{displayedQuestion}<span className="animate-[pulse_0.7s_infinite] text-neon-blue">|</span></motion.h2>
-                    )}
-                    {/* Audience Poll Chart */}
-                    {showPoll && (
-                      <motion.div key={pollKey} initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} className="mt-8 p-4 bg-neon-blue/5 border border-neon-blue/20 rounded-2xl">
-                        <p className="text-[10px] font-mono text-white/40 tracking-widest uppercase mb-3">Audience Poll</p>
-                        <div className="flex items-end justify-between gap-3 h-20">
-                          {['A','B','C','D'].map((ltr, i) => (
-                            <div key={ltr} className="flex flex-col items-center flex-1 gap-1">
-                              <span className="text-xs text-white/60 font-mono">{showPoll[i]}%</span>
-                              <div className="w-full rounded-t-lg bg-neon-blue/10 relative overflow-hidden" style={{height:`${showPoll[i] * 0.9}%`, minHeight:'4px'}}>
-                                <div className="absolute inset-0 bg-gradient-to-t from-neon-blue/60 to-neon-blue/30 poll-bar" style={{'--target-w':'100%'} as any} />
-                              </div>
-                              <span className="text-[10px] font-black text-neon-blue">{ltr}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                    {oracleLog && !showPoll && (
-                      <motion.div initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} className="mt-8 p-4 bg-neon-blue/10 border border-neon-blue/30 rounded-2xl font-mono text-neon-blue text-sm uppercase tracking-widest">
-                        {oracleLog}
-                      </motion.div>
-                    )}
-                  </motion.div>
-
-                  {/* Options grid with AI hints + glitch */}
-                  <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-6 relative z-20">
-                    {q.options.map((opt: string, i: number) => (
-                      <div
-                        key={`opt-${level}-${i}`}
-                        className={`relative ${glitchCard === i ? 'glitch-hover' : ''}`}
-                        onMouseEnter={() => setHoveredOpt(i)}
-                        onMouseLeave={() => setHoveredOpt(null)}
-                      >
-                        {/* AI Hint % tooltip (Feature 6) */}
-                        {hoveredOpt === i && selectedOpt === null && pendingAnswer === null && aiHints.current[i] !== undefined && (
-                          <motion.div
-                            initial={{opacity:0, y:5}} animate={{opacity:1, y:0}}
-                            className="absolute -top-8 left-1/2 -translate-x-1/2 z-30 px-3 py-1 rounded-lg bg-black/80 border border-white/10 text-[10px] font-mono text-white/70 whitespace-nowrap"
-                          >
-                            🤖 {aiHints.current[i]}% AIs pick this
-                          </motion.div>
-                        )}
-                        <OptionCard
-                          index={i}
-                          text={opt}
-                          selected={selectedOpt === i}
-                          correct={selectedOpt === i ? isCorrect : (isCorrect === false && i === q.ans ? true : null)}
-                          eliminated={eliminatedOpts.includes(i)}
-                          onClick={() => execOption(i)}
-                          playMode={playMode}
-                        />
-                      </div>
-                    ))}
+        {/* ACTIVE GAME */}
+        {q && gameState === "active" && (
+          <div className="z-10 flex flex-col w-full h-full max-w-7xl mx-auto px-6 py-8 relative">
+            
+            {/* Header Area */}
+            <header className="flex justify-between items-center w-full pb-8">
+              <div className="flex items-center justify-center gap-12">
+                  <div className="flex flex-col">
+                    <span className="text-zinc-500 tracking-[0.2em] text-[10px] uppercase font-bold mb-1">{playMode === 'interview' ? 'Quota' : 'Ledger'}</span>
+                    <span className="font-mono text-white tracking-wider text-xl">{playMode === 'interview' ? `${interviewXP} XP` : walletBalance}</span>
                   </div>
 
-                  {/* Confidence Meter (Feature 5) */}
-                  {confidenceScore !== null && selectedOpt !== null && (
-                    <motion.div
-                      initial={{opacity:0, y:20}} animate={{opacity:1, y:0}}
-                      className="mt-6 w-full max-w-6xl glass-panel border border-white/10 rounded-2xl p-4 flex items-center gap-6"
-                    >
-                      <span className="text-[10px] font-mono text-white/40 uppercase tracking-widest whitespace-nowrap">Answer Confidence</span>
-                      <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
-                        <motion.div
-                          initial={{width:0}}
-                          animate={{width:`${confidenceScore}%`}}
-                          transition={{duration:0.8, ease:'easeOut'}}
-                          className={`h-full rounded-full ${
-                            confidenceScore >= 70 ? 'bg-gradient-to-r from-green-500 to-emerald-400' :
-                            confidenceScore >= 40 ? 'bg-gradient-to-r from-gold-500 to-yellow-400' :
-                            'bg-gradient-to-r from-red-500 to-orange-400'
-                          }`}
-                        />
-                      </div>
-                      <span className={`font-black font-mono text-lg ${
-                        confidenceScore >= 70 ? 'text-green-400' : confidenceScore >= 40 ? 'text-gold-400' : 'text-red-400'
-                      }`}>{confidenceScore}%</span>
+                  <div className="flex flex-col">
+                     <span className="text-zinc-500 tracking-[0.2em] text-[10px] uppercase font-bold mb-1">Level</span>
+                     <span className="font-mono text-white tracking-widest text-lg">{String(level+1).padStart(2,'0')} <span className="text-zinc-600 font-light">/ 16</span></span>
+                  </div>
+
+                  {playMode === "solo" && (
+                     <div className="flex gap-2 isolate">
+                        <LifelinePanel lifelines={lifelines} onUse={useLifeline} disabled={selectedOpt !== null} />
+                     </div>
+                  )}
+
+                  {playMode === "solo" && streak >= 2 && (
+                    <motion.div initial={{scale:0.8,opacity:0}} animate={{scale:1,opacity:1}} transition={{type:"spring"}} className="px-4 py-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 flex items-center gap-2">
+                      <span className="text-amber-500 text-xs">🔥</span>
+                      <span className="text-[10px] font-bold text-amber-500 tracking-widest uppercase">{streak} Streak</span>
                     </motion.div>
                   )}
-                </motion.div>
-              </AnimatePresence>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                {playMode === "duel_host" && (
+                  <div className="px-6 py-2 rounded-full border border-amber-500/30 text-amber-500 text-[10px] tracking-widest font-mono uppercase bg-amber-500/10 backdrop-blur">
+                     {hostRevealed ? `CORRECT: ${String.fromCharCode(65 + q.ans)}` : 'REVEAL: [SPACE]'}
+                  </div>
+                )}
+                {(playMode === "solo" || playMode === "interview") && (
+                  <button onClick={() => { VoiceEngine.speak("Leaving already? Stay safe."); setGameState("extracted"); }} className="px-6 py-2 rounded-full text-[10px] font-bold tracking-widest uppercase text-zinc-400 hover:text-white border border-white/5 hover:border-white/20 hover:bg-surface-200 transition-colors">Withdraw</button>
+                )}
+              </div>
+            </header>
+
+            {/* Duel Race Progress Bars */}
+            {playMode === "duel_race" && (
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 w-full max-w-sm flex items-center justify-between gap-6 opacity-60">
+                <div className="flex-1 flex flex-col items-end gap-2">
+                   <span className="text-[9px] font-mono font-bold text-zinc-100">P1 {p1Progress}/16</span>
+                   <div className="h-1 w-full bg-surface-200 rounded overflow-hidden flex justify-end"><div className="h-full bg-white transition-all" style={{ width: `${(p1Progress/16)*100}%` }}/></div>
+                </div>
+                <div className="flex-1 flex flex-col items-start gap-2">
+                   <span className="text-[9px] font-mono font-bold text-zinc-100">P2 {p2Progress}/16</span>
+                   <div className="h-1 w-full bg-surface-200 rounded overflow-hidden flex"><div className="h-full bg-white transition-all" style={{ width: `${(p2Progress/16)*100}%` }}/></div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex-1 flex gap-12 w-full">
+              {/* Left Column: Money Ladder */}
+              {(playMode === "solo" || playMode === "interview") && (
+                 <div className="hidden lg:flex w-[260px] pt-12 items-start drop-shadow">
+                    <MoneyLadder currentLevel={level} prizeLadder={PRIZE_LADDER} mode={playMode} />
+                 </div>
+              )}
+
+              {/* Main Column: Game Area */}
+              <div className="flex-1 flex flex-col items-center justify-center">
+                
+                {/* Minimalist Linear Timer */}
+                <div className="w-full max-w-[800px] mb-12 flex flex-col items-center gap-3">
+                   <span className={`text-[2.5rem] leading-none font-mono font-medium tracking-tight ${timer <= 15 ? 'text-amber-500 animate-pulse' : 'text-zinc-400'}`}>
+                     {timer.toString().padStart(2,'0')}
+                   </span>
+                   <div className="w-full h-[2px] bg-surface-200 overflow-hidden relative">
+                     <div className={`absolute top-0 left-0 h-full ${timer <= 15 ? 'bg-amber-500' : 'bg-zinc-400'} timer-bar-progress`} style={{ width: `${(timer/90)*100}%` }} />
+                   </div>
+                </div>
+
+                <AnimatePresence mode="wait">
+                  <motion.div key={`block-${level}`} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98 }} className="w-full flex flex-col items-center max-w-[840px]">
+                    
+                    <div className="w-full min-h-[160px] flex flex-col justify-center items-center text-center px-4 mb-10">
+                       <h2 className="text-[2rem] md:text-[2.2rem] font-medium leading-[1.35] text-white tracking-tight max-w-[800px]">
+                         {displayedQuestion}<span className="animate-pulse text-zinc-600 ml-1">|</span>
+                       </h2>
+
+                       {/* Audience Poll Chart */}
+                       {showPoll && (
+                         <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} className="mt-12 p-6 glass-panel-sleek rounded-2xl w-full max-w-[360px] flex items-end justify-between h-32 gap-6">
+                           {['A','B','C','D'].map((ltr, i) => (
+                             <div key={ltr} className="flex flex-col items-center flex-1 gap-2 h-full justify-end">
+                               <span className="text-[10px] text-zinc-500 font-mono font-medium">{showPoll[i]}%</span>
+                               <div className="w-full bg-white/5 rounded-t relative overflow-hidden transition-all duration-1000" style={{height:`${showPoll[i]}%`, minHeight:'4px'}}>
+                                 <div className="absolute top-0 left-0 w-full bg-white opacity-20" style={{'--target-w':'100%', height:'100%'} as any} />
+                               </div>
+                               <span className="text-xs font-bold text-zinc-300">{ltr}</span>
+                             </div>
+                           ))}
+                         </motion.div>
+                       )}
+                       {oracleLog && !showPoll && (
+                         <motion.div initial={{opacity:0}} animate={{opacity:1}} className="mt-10 text-sm font-medium text-zinc-300 glass-panel-sleek px-8 py-4 rounded-xl">
+                           {oracleLog}
+                         </motion.div>
+                       )}
+                    </div>
+
+                    <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 relative z-20">
+                      {q.options.map((opt: string, i: number) => (
+                         <div key={`opt-${level}-${i}`} className="relative pl-0 w-full">
+                           {hoveredOpt === i && selectedOpt === null && pendingAnswer === null && aiHints.current[i] !== undefined && (
+                             <motion.div initial={{opacity:0, y:2}} animate={{opacity:1, y:0}} className="absolute -top-7 left-1/2 -translate-x-1/2 z-30 px-3 py-1 rounded bg-zinc-800 text-[10px] text-zinc-300 border border-white/5 shadow-xl font-medium flex items-center gap-1.5 whitespace-nowrap">
+                               <span className="text-amber-500 text-[8px] leading-none">✦</span> {aiHints.current[i]}% Probability
+                             </motion.div>
+                           )}
+                           <OptionCard index={i} text={opt} selected={selectedOpt === i} correct={selectedOpt === i ? isCorrect : (isCorrect === false && i === q.ans ? true : null)} eliminated={eliminatedOpts.includes(i)} onClick={() => execOption(i)} playMode={playMode} />
+                         </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+               {/* Right Filler for centering when Solo */}
+               {(playMode === "solo" || playMode === "interview") && <div className="hidden lg:block w-[260px]" />}
             </div>
           </div>
         )}
       </motion.div>
     </div>
   );
+
 }

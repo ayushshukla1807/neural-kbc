@@ -1,61 +1,111 @@
 @import "tailwindcss";
 
 @theme {
-  --color-neon-blue: #00f0ff;
-  --color-neon-purple: #8a2be2;
-  --color-gold-400: #ffd700;
-  --color-gold-500: #d4a017;
-  --color-gold-600: #aa8000;
-  --color-space-900: #050508;
-  --color-space-950: #030305;
+  --color-zinc-900: #18181b;
+  --color-zinc-950: #09090b;
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+  --color-accent-blue: #3b82f6;
+  --color-accent-cyan: #06b6d4;
+  --color-surface-100: rgba(255, 255, 255, 0.03);
+  --color-surface-200: rgba(255, 255, 255, 0.05);
+  --color-surface-300: rgba(255, 255, 255, 0.1);
 }
 
 @layer utilities {
-  .glow-text-blue { text-shadow: 0 0 20px rgba(0, 240, 255, 0.8), 0 0 40px rgba(0, 240, 255, 0.4); }
-  .glow-text-gold { text-shadow: 0 0 20px rgba(212, 160, 23, 0.8), 0 0 40px rgba(212, 160, 23, 0.4); }
-  .glow-text-red { text-shadow: 0 0 20px rgba(255, 0, 85, 0.8), 0 0 40px rgba(255, 0, 85, 0.4); }
-  .glass-panel {
-    background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
-    backdrop-filter: blur(24px) saturate(150%);
-    -webkit-backdrop-filter: blur(24px) saturate(150%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: inset 0 0 20px rgba(255,255,255,0.02), 0 8px 32px rgba(0,0,0,0.4);
+  .glass-panel-sleek {
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .glass-panel-sleek-hover {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 32px -1px rgba(0, 0, 0, 0.5);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 24px rgba(255, 255, 255, 0.4);
+  }
+  
+  .text-glow-amber {
+    text-shadow: 0 0 24px rgba(245, 158, 11, 0.6);
   }
 }
 
 body {
   margin: 0;
   overflow: hidden;
-  background-color: #030305;
-  color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #09090b;
+  color: #fafafa;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
   user-select: none;
 }
 
-::selection { background: rgba(0, 240, 255, 0.3); color: white; }
-
-/* Glitch Animation */
-@keyframes glitch-anim {
-  0% { transform: translate(0) }
-  20% { transform: translate(-2px, 2px) }
-  40% { transform: translate(-2px, -2px) }
-  60% { transform: translate(2px, 2px) }
-  80% { transform: translate(2px, -2px) }
-  100% { transform: translate(0) }
+/* Background Ambient Glow */
+.ambient-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120vw;
+  height: 120vh;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.015) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
 }
-.glitch-hover:hover { animation: glitch-anim 0.2s cubic-bezier(.25, .46, .45, .94) both infinite; }
 
-/* Camera Shake */
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px) rotate(-1deg); }
-  20%, 40%, 60%, 80% { transform: translateX(5px) rotate(1deg); }
+::selection { 
+  background: rgba(255, 255, 255, 0.1); 
+  color: white; 
 }
-.animate-shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
 
-/* Sub-atomic particle background pulse */
-.bg-mesh-grid {
-  background-size: 40px 40px;
-  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+/* ─── Premium Subtle Animations ─── */
+@keyframes fade-in-up {
+  0% { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Thin linear timer bar progress */
+.timer-bar-progress {
+  transition: width 1s linear, background-color 0.5s ease;
+}
+
+/* Clean text shimmer instead of multi-color rainbow */
+@keyframes text-shimmer-clean {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.shimmer-text-clean {
+  background: linear-gradient(90deg, #a1a1aa 0%, #fff 25%, #fff 50%, #fff 75%, #a1a1aa 100%);
+  background-size: 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: text-shimmer-clean 5s linear infinite;
+}
+
+/* Premium spinner loader */
+.spinner-ring {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: rgba(255, 255, 255, 0.8);
+  animation: spin 1s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
