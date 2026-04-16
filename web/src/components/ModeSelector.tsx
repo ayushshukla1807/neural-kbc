@@ -76,7 +76,7 @@ function ModeCard({ mode, index, onSelect }: any) {
       whileTap={{ scale: 0.95 }}
       onMouseMove={handleMouseMove}
       onClick={() => onSelect(mode.id)}
-      className={`relative p-8 rounded-full border-2 border-yellow-500/50 hover:border-yellow-400 group transition-all duration-300 text-left flex flex-col items-start bg-[#05051A] shadow-[0_0_20px_rgba(0,100,255,0.2)] hover:shadow-[0_0_40px_rgba(255,215,0,0.4)] overflow-hidden h-[180px] justify-center w-full`}
+      className={`relative p-8 rounded-3xl border-2 border-yellow-500/60 hover:border-yellow-400 group transition-all duration-300 text-left flex flex-col items-start bg-gradient-to-br from-[#172554] to-[#0d1b4b] shadow-[0_0_30px_rgba(0,80,255,0.3),inset_0_1px_0_rgba(255,255,255,0.08)] hover:shadow-[0_0_50px_rgba(255,215,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)] overflow-hidden h-[200px] justify-center w-full`}
       style={{ transformStyle: 'preserve-3d' }}
     >
       {/* Interactive Spotlight */}
