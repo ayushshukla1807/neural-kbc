@@ -112,9 +112,16 @@ export default function NeuralArena() {
   useEffect(() => {
     VoiceEngine.init();
     VoiceEngine.onLoaded(() => {
-      const names = VoiceEngine.allVoices.map(v => v.name);
-      setAvailableVoices(names);
-      setSelectedVoiceName(VoiceEngine.selectedVoice?.name || "");
+      // Hardcode to Lana Del Rey / Samantha / Daniel etc to simulate a premium Host
+      let tvHostVoice = VoiceEngine.allVoices.find(v => v.name.includes("Lana")) ||
+                         VoiceEngine.allVoices.find(v => v.name.includes("Samantha")) ||
+                         VoiceEngine.allVoices.find(v => v.name.includes("Daniel"));
+                         
+      if (tvHostVoice) {
+        VoiceEngine.setVoice(tvHostVoice.name);
+      } else if (VoiceEngine.allVoices.length > 0) {
+        VoiceEngine.setVoice(VoiceEngine.allVoices[0].name);
+      }
     });
   }, []);
 
@@ -625,7 +632,7 @@ export default function NeuralArena() {
           setTimeout(() => setScreenFlash(null), 600);
           AudioEngine.win();
           if(playMode==="solo" || playMode==="interview") {
-            VoiceEngine.speak(`Everything is coming up roses. You've earned ${PRIZE_LADDER[nextLevel - 1]}. It's beautiful.`, 0.68, 0.85);
+            VoiceEngine.speak(`Absolutely brilliant. You've won ${PRIZE_LADDER[nextLevel - 1]}. But the stakes are getting incredibly high. Are you ready?`, 0.8, 1);
           }
           setWalletBalance(PRIZE_LADDER[nextLevel - 1]);
           if (playMode === "interview") setInterviewXP(prev => prev + (nextLevel * 1000));
@@ -634,7 +641,7 @@ export default function NeuralArena() {
             setUnlockedAsset("🔓 Level 5 Smart Contract Minted");
             setScreenFlash('milestone');
             setMilestoneText("SAFE ZONE");
-            VoiceEngine.speak("We've reached the safe zone... nothing can touch us now.", 0.65, 0.78);
+            VoiceEngine.speak("You've cleared the first milestone. The safe zone is locked. You can breathe now... but only for a moment.", 0.8, 1);
             setTimeout(() => { setScreenFlash(null); setMilestoneText(""); }, 2000);
           }
           if(nextLevel === 10) {
@@ -642,14 +649,14 @@ export default function NeuralArena() {
             setScreenFlash('milestone');
             setMilestoneText("GOLDEN MILESTONE");
             launchConfetti();
-            VoiceEngine.speak("The golden milestone... you are extraordinary. The light is yours.", 0.65, 0.76);
+            VoiceEngine.speak("The second milestone. Absolutely incredible performance. But the ultimate prize awaits you.", 0.85, 1);
             setTimeout(() => { setScreenFlash(null); setMilestoneText(""); }, 2500);
           }
           setTimeout(() => setUnlockedAsset(""), 3000);
           if (nextLevel > PRIZE_LADDER.length - 1) { 
              pushLog("DAO FOUNDER ATTAINED."); 
              launchConfetti();
-             VoiceEngine.speak(playMode?.startsWith("duel") ? "The race is over. You both lived beautifully through it." : "I knew you were special. You're a founder now. The world is yours.", 0.65, 0.8); 
+             VoiceEngine.speak(playMode?.startsWith("duel") ? "The race is over. One of you was simply faster." : "Unbelievable! You've done it! You are a Crorepati... the ultimate champion!", 0.9, 1); 
              setGameState("victorious"); 
           }
           else { setLevel(nextLevel); setTimer(60); setSelectedOpt(null); setIsCorrect(null); setEliminatedOpts([]); setOracleLog(""); setShowPoll(null); }
@@ -658,7 +665,7 @@ export default function NeuralArena() {
           setScreenFlash('wrong');
           setTimeout(() => setScreenFlash(null), 500);
           pushLog("HASH REJECTED. FATAL ERROR SEVERITY LEVEL 9."); AudioEngine.lose(); 
-          if(playMode==="solo" || playMode==="interview") VoiceEngine.speak("It's so tragic... but I still love you. The game is over.", 0.55, 0.75); 
+          if(playMode==="solo" || playMode==="interview") VoiceEngine.speak("Oh no. That is the wrong answer. You've lost. The game is over.", 0.7, 1); 
           setIsShaking(true); 
           if (playMode === "solo") setGameState("eliminated");
         }
@@ -673,290 +680,219 @@ export default function NeuralArena() {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col font-sans relative overflow-hidden transition-all duration-1000 ${isShaking ? 'animate-shake' : ''}`} style={{ backgroundColor: `hsl(${ambientHue}, 20%, 4%)` }}>
+    <div className={`min-h-screen flex flex-col font-sans relative overflow-hidden transition-all duration-1000 bg-[#020210] ${isShaking ? 'animate-shake' : ''}`}>
       
-      {/* Cinematic Ambient Glow & Fluid Mesh */}
-      <div className="fluid-mesh-bg" />
+      {/* Authentic KBC Studio Lighting Background */}
+      <div className="studio-rings" />
+      <div className="studio-spotlight" />
 
-      {/* Confetti & Screen Flashes */}
+      {/* Explosive Gold Flash & Confetti Layer */}
       <canvas ref={confettiRef} className="fixed inset-0 z-[9998] pointer-events-none" />
       {screenFlash && (
         <div className={`fixed inset-0 z-[9997] pointer-events-none ${
-          screenFlash === 'correct' ? 'bg-green-500/20 flash-green' :
-          screenFlash === 'milestone' ? 'bg-yellow-400/20 flash-green' :
-          'bg-red-500/30 flash-red backdrop-saturate-200'
+          screenFlash === 'correct' ? 'flash-gold' :
+          screenFlash === 'milestone' ? 'flash-gold bg-[rgba(255,215,0,0.4)]' :
+          'bg-black/80 backdrop-blur opacity-90'
         }`} />
       )}
       
-      {/* ── Feature 1: Final Answer confirmation modal ── */}
+      {/* ── Feature 6: "Lock Kiya Jaye?" Suspense Modal ── */}
       <AnimatePresence>
         {pendingAnswer !== null && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-2xl">
-            <motion.div initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 30 }} transition={{ type: "spring", bounce: 0.5 }} className="glass-panel-sleek border border-cyan-500/50 rounded-[3rem] p-16 text-center max-w-xl w-full shadow-[0_0_80px_rgba(0,240,255,0.2)]">
-              <p className="text-cyan-400 font-bold tracking-[0.3em] uppercase mb-6 text-xs">Verify Selection</p>
-              <p className="text-4xl font-medium text-white mb-4 tracking-tight">
-                <span className="text-yellow-500 mr-4 font-black">{['A','B','C','D'][pendingAnswer]}.</span>
-                {q?.options[pendingAnswer]}
-              </p>
-              <p className="text-zinc-400 font-medium tracking-wide text-sm mb-12">Is this your final answer?</p>
-              
-              <div className="flex gap-4 justify-center mb-12">
-                <motion.div key={finalCountdown} initial={{ scale: 2, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring" }} className="text-7xl font-black font-mono text-yellow-500 drop-shadow-[0_0_20px_rgba(255,215,0,0.8)]">{finalCountdown}</motion.div>
-              </div>
-
-              <div className="flex gap-6 justify-center w-full">
-                <button onClick={() => setPendingAnswer(null)} className="flex-1 py-4 rounded-2xl text-zinc-300 border border-white/10 hover:bg-white/5 transition-all font-bold tracking-widest uppercase text-xs">Cancel</button>
-                <button onClick={() => {
-                    const idx = pendingAnswer;
-                    setPendingAnswer(null);
-                    AudioEngine.lock();
-                    setSelectedOpt(idx);
-                    pushLog(`VECTOR OPTION ${String.fromCharCode(65 + idx)} LOCKED.`);
-                    const correct = idx === q?.ans;
-                    const elapsed = (Date.now() - questionStartTime) / 1000;
-                    setConfidenceScore(Math.max(5, Math.round(100 - (elapsed / 60) * 90)));
-                    setIsCorrect(correct);
-                    if (!correct) { setGlitchCard(idx); setTimeout(() => setGlitchCard(null), 1000); }
-                    setTimeout(() => executeCryptographicCheck(correct, level + 1), 1500);
-                  }} className="flex-1 py-4 bg-cyan-500 hover:bg-cyan-400 text-black rounded-2xl font-black tracking-widest uppercase text-xs transition-all shadow-[0_0_30px_rgba(0,240,255,0.5)]">Lock In</button>
-              </div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#010115]/90 backdrop-blur-md">
+            
+            <motion.div initial={{ scale: 1.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", bounce: 0.6 }} className="kbc-lozenge-wrapper max-w-4xl w-full p-2 animate-pulse mb-10 shadow-[0_0_80px_rgba(249,115,22,0.8)]">
+               <div className="kbc-lozenge-inner py-16 flex flex-col items-center bg-orange-600 text-center">
+                  <p className="text-white font-black tracking-widest text-3xl uppercase mb-6 drop-shadow-md border-b border-white/30 pb-4 px-10">LOCK KIYA JAYE?</p>
+                  
+                  <p className="text-5xl font-medium text-white tracking-widest mb-4">
+                    <span className="text-yellow-300 font-serif font-black mr-6">{['A','B','C','D'][pendingAnswer]}:</span>
+                    <span className="font-sans">{q?.options[pendingAnswer]}</span>
+                  </p>
+               </div>
             </motion.div>
+
+            <div className="flex gap-4 justify-center items-center">
+              <motion.div key={finalCountdown} initial={{ scale: 3, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring" }} className="text-[8rem] leading-none font-black font-mono text-orange-400 drop-shadow-[0_0_30px_rgba(249,115,22,1)] mr-16">{finalCountdown}</motion.div>
+              
+              <div className="flex flex-col gap-6">
+                 <button onClick={() => {
+                      const idx = pendingAnswer;
+                      setPendingAnswer(null);
+                      AudioEngine.lock();
+                      setSelectedOpt(idx);
+                      pushLog(`VECTOR OPTION ${String.fromCharCode(65 + idx)} LOCKED.`);
+                      const correct = idx === q?.ans;
+                      const elapsed = (Date.now() - questionStartTime) / 1000;
+                      setConfidenceScore(Math.max(5, Math.round(100 - (elapsed / 60) * 90)));
+                      setIsCorrect(correct);
+                      setTimeout(() => executeCryptographicCheck(correct, level + 1), 2500); // KBC Dramatic Pauses
+                    }} className="px-16 py-6 bg-gradient-to-b from-yellow-400 to-yellow-600 text-black rounded-full font-black tracking-widest uppercase text-xl transition-all shadow-[0_0_40px_rgba(255,215,0,0.8)] border border-yellow-200">Yes, Lock It</button>
+                 <button onClick={() => setPendingAnswer(null)} className="px-16 py-4 rounded-full text-white border border-white/30 hover:bg-white/10 transition-all font-bold tracking-widest uppercase text-sm">Cancel</button>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
       <motion.div className="relative z-10 w-full h-full flex flex-col items-center justify-center">
         
-        {/* LOBBY */}
-        {gameState === "lobby" && (
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, type: "spring" }} className="z-10 flex flex-col items-center max-w-7xl text-center relative w-full px-6">
-            <h1 className="text-glow-blue text-6xl md:text-[7rem] font-black tracking-tighter mb-4 text-white drop-shadow-2xl">Neural Arena</h1>
-            <p className="text-sm text-cyan-400 tracking-[0.4em] uppercase mb-16 relative z-10 font-bold">The Next Generation of Competitive Knowledge</p>
+        {/* LOBBY / ONBOARDING */}
+        {(gameState === "lobby" || gameState === "onboarding") && (
+          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, type: "spring" }} className="z-10 flex flex-col items-center max-w-7xl text-center relative w-full px-6 py-20">
             
-            <ModeSelector onSelect={verifyProctoring} />
-
-            <div className="flex flex-col md:flex-row gap-6 w-full max-w-5xl mt-10">
-              {availableVoices.length > 0 && (
-                <div className="flex-1 flex items-center gap-4 px-8 py-5 glass-panel-sleek rounded-[2rem] relative border-cyan-500/30">
-                  <span className="text-cyan-400 font-bold tracking-widest text-[10px] uppercase whitespace-nowrap">Voice Agent</span>
-                  <select value={selectedVoiceName} onChange={e => handleVoiceChange(e.target.value)} className="flex-1 bg-transparent border-none text-white font-bold text-sm font-mono focus:outline-none appearance-none cursor-pointer">
-                    {availableVoices.map(name => <option key={name} value={name} className="bg-zinc-900 text-white">{name}</option>)}
-                  </select>
-                </div>
-              )}
-
-              <div className="flex-1 flex items-center justify-between px-8 py-5 glass-panel-sleek rounded-[2rem] border-cyan-500/30">
-                <span className="text-cyan-400 font-bold tracking-widest text-[10px] uppercase">Invite Link</span>
-                <button onClick={copyRefLink} className="text-white hover:text-cyan-300 text-sm font-mono font-black uppercase transition-colors">{referralCopied ? 'Copied' : 'Copy'}</button>
-              </div>
+            <div className="w-[300px] h-[300px] rounded-full border-[10px] border-[#01011A] shadow-[0_0_50px_rgba(0,100,255,0.8)] flex items-center justify-center mb-10 relative overflow-hidden bg-[radial-gradient(ellipse_at_center,rgba(50,100,255,0.4)_0%,transparent_70%)]">
+               <div className="absolute inset-0 border-4 border-yellow-500 rounded-full scale-[0.8] animate-[spin_10s_linear_infinite] border-dashed opacity-50" />
+               <h1 className="text-5xl md:text-7xl font-sans font-black tracking-tighter text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.8)] bg-gradient-to-b from-yellow-300 to-yellow-600 text-transparent bg-clip-text">NEURAL KBC</h1>
             </div>
+
+            {gameState === "lobby" ? (
+               <>
+                 <p className="text-xl text-yellow-500 tracking-[0.5em] font-serif uppercase mb-16 relative z-10 font-bold drop-shadow-[0_0_10px_rgba(255,215,0,0.5)]">Who Wants To Play</p>
+                 <ModeSelector onSelect={verifyProctoring} />
+               </>
+            ) : (
+               <div className="w-full max-w-4xl text-center pb-20">
+                 <h2 className="text-4xl font-black tracking-widest text-white mb-4 drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]">SELECT YOUR DOMAINS</h2>
+                 <p className="text-yellow-500 mb-14 text-sm font-bold uppercase tracking-[0.4em]">Choose 3 technical subjects to begin</p>
+                 
+                 <div className="flex flex-wrap justify-center gap-6 mb-16">
+                   {availableDomains.map(domain => {
+                     const selected = selectedDomains.includes(domain);
+                     return ( <button key={domain} onClick={() => toggleDomain(domain)} className={`px-8 py-5 rounded-full font-bold tracking-widest transition-all text-sm border-2 ${selected ? 'bg-gradient-to-b from-yellow-400 to-yellow-600 text-black border-yellow-300 shadow-[0_0_30px_rgba(255,215,0,0.8)] scale-110' : 'bg-[#05051a] text-white border-white/20 hover:border-yellow-500 hover:shadow-[0_0_20px_rgba(255,215,0,0.3)]'}`}> {domain} </button> )
+                   })}
+                 </div>
+                 
+                 <button onClick={constructGenerativeMatrix} disabled={selectedDomains.length !== 3} className={`px-16 py-6 rounded-full font-black tracking-[0.3em] text-xl uppercase transition-all ${selectedDomains.length === 3 ? 'bg-white text-black shadow-[0_0_50px_rgba(255,255,255,0.8)] hover:scale-105 border-4 border-[#01011A]' : 'bg-[#05051a] text-zinc-600 cursor-not-allowed border-2 border-white/5'}`}>
+                   Let's Play
+                 </button>
+               </div>
+            )}
           </motion.div>
         )}
 
-        {/* ONBOARDING */}
-        {gameState === "onboarding" && (
-          <motion.div initial="hidden" animate="visible" variants={containerVariants} className="z-10 w-full max-w-5xl px-6 text-center">
-            <motion.h2 variants={itemVariants} className="text-5xl font-black tracking-tighter text-white mb-4 drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]">Configure Sandbox</motion.h2>
-            <motion.p variants={itemVariants} className="text-cyan-400 mb-14 text-sm font-bold uppercase tracking-[0.3em]">Select 3 technical domains</motion.p>
-            
-            <motion.div variants={containerVariants} className="flex flex-wrap justify-center gap-4 mb-12">
-              {availableDomains.map(domain => {
-                const selected = selectedDomains.includes(domain);
-                return ( <motion.button variants={itemVariants} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} key={domain} onClick={() => toggleDomain(domain)} className={`px-8 py-4 rounded-[2rem] font-bold tracking-wide transition-all text-sm border-2 ${selected ? 'bg-cyan-500 text-black border-cyan-400 shadow-[0_0_30px_rgba(0,240,255,0.6)] scale-105' : 'glass-panel-sleek text-zinc-300 hover:text-white border-white/10 hover:border-cyan-500/50 hover:shadow-[0_0_20px_rgba(0,240,255,0.2)]'}`}> {domain} </motion.button> )
-              })}
-            </motion.div>
-            
-            <motion.button variants={itemVariants} onClick={constructGenerativeMatrix} disabled={selectedDomains.length !== 3} className={`px-12 py-5 rounded-full font-black tracking-[0.2em] text-sm uppercase transition-all ${selectedDomains.length === 3 ? 'bg-yellow-500 text-black shadow-[0_0_40px_rgba(255,215,0,0.6)] hover:bg-yellow-400 hover:scale-105' : 'glass-panel-sleek text-zinc-600 cursor-not-allowed opacity-50'}`}>
-              Initialize Matrix
-            </motion.button>
-          </motion.div>
-        )}
-
-        {/* LOADING LLM */}
+        {/* LOADING LLM (KBC TENSION) */}
         {gameState === "loading_llm" && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="z-10 flex flex-col items-center">
-            <div className="w-24 h-24 border-[4px] border-white/5 border-t-cyan-400 rounded-full animate-spin mb-10 shadow-[0_0_50px_rgba(0,240,255,0.5)]"></div>
-            <p className="text-cyan-400 text-sm font-mono tracking-[0.3em] font-bold uppercase animate-pulse">Synthesizing Datasets</p>
+            <div className="w-32 h-32 border-[6px] border-yellow-500/20 border-t-yellow-500 rounded-full animate-[spin_3s_cubic-bezier(0.5,0,0.5,1)_infinite] mb-12 shadow-[0_0_80px_rgba(255,215,0,0.4)] relative">
+               <div className="absolute inset-4 border-[4px] border-blue-500/30 border-b-blue-400 rounded-full animate-[spin_2s_linear_infinite_reverse]" />
+            </div>
+            <p className="text-yellow-500 text-2xl font-sans tracking-[0.4em] font-black uppercase animate-pulse">Generating Questions...</p>
           </motion.div>
         )}
 
-        {/* DECRYPTING HASH */}
+        {/* DECRYPTING HASH (KBC COMMERCIAL BREAK SUSPENSE) */}
         {gameState === "decrypting" && (
-          <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-3xl">
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 flex items-center justify-center bg-[#010115]/90 backdrop-blur-md">
             <div className="flex flex-col items-center">
-              <div className="w-32 h-32 border-4 border-dashed border-yellow-500 rounded-full animate-[spin_2s_linear_infinite] flex items-center justify-center mb-10 relative shadow-[0_0_50px_rgba(255,215,0,0.3)]">
-                <div className="absolute inset-0 bg-yellow-500/20 rounded-full animate-ping"></div>
+              <div className="w-48 h-48 border-8 border-dashed border-red-600 rounded-full animate-[spin_4s_linear_infinite] flex items-center justify-center mb-12 relative shadow-[0_0_80px_rgba(220,38,38,0.5)]">
+                <div className="absolute inset-0 bg-red-600/20 rounded-full animate-ping"></div>
               </div>
-              <p className="text-yellow-500 text-sm font-bold tracking-[0.4em] uppercase mb-6 drop-shadow-[0_0_10px_rgba(255,215,0,0.5)]">Verifying Block</p>
-              <p className="text-5xl font-mono text-white tracking-widest drop-shadow-[0_0_20px_rgba(255,255,255,0.8)]">{decryptionHash}</p>
+              <p className="text-red-500 text-3xl font-black tracking-[0.5em] uppercase mb-8 drop-shadow-[0_0_20px_rgba(220,38,38,0.8)]">VERIFYING</p>
             </div>
           </motion.div>
         )}
 
         {/* ENDGAME STATES */}
          {["eliminated", "victorious", "extracted"].includes(gameState) && (
-          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", bounce: 0.6 }} className="z-10 glass-panel-sleek border-2 border-white/10 p-20 rounded-[4rem] max-w-4xl w-full text-center relative overflow-hidden flex flex-col items-center shadow-[0_0_100px_rgba(0,0,0,0.8)]">
-            <h1 className={`text-6xl md:text-7xl font-black mb-6 tracking-tighter relative z-10 ${gameState==='eliminated'? 'text-red-500 text-glow-red' : 'text-yellow-400 text-glow-gold'}`}>
-              {playMode?.startsWith("duel") ? (p1Progress > p2Progress || p1Score > p2Score ? "PLAYER 1 WINS" : "PLAYER 2 WINS") : gameState === 'eliminated' ? 'SYSTEM FAILURE' : 'PROTOCOL COMPLETE'}
+          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", bounce: 0.6 }} className="z-10 bg-[#05051a] border-[4px] border-yellow-500 p-24 rounded-[3rem] max-w-5xl w-full text-center relative overflow-hidden flex flex-col items-center shadow-[0_0_150px_rgba(255,215,0,0.5)]">
+            <h1 className={`text-6xl md:text-[5.5rem] leading-tight font-black mb-10 tracking-tighter relative z-10 ${gameState==='eliminated'? 'text-white' : 'text-yellow-400 text-glow-gold'}`}>
+              {playMode?.startsWith("duel") ? (p1Progress > p2Progress || p1Score > p2Score ? "PLAYER 1 WINS" : "PLAYER 2 WINS") : gameState === 'eliminated' ? 'GAME OVER' : 'YOU ARE A MILLIONAIRE'}
             </h1>
             
-            {playMode?.startsWith("duel") ? (
-               <div className="flex w-full gap-8 relative z-10 mb-16 justify-center mt-8">
-                 <div className="px-12 py-10 rounded-[2rem] border border-cyan-500/50 bg-cyan-500/10 flex flex-col items-center w-64 shadow-[0_0_40px_rgba(0,240,255,0.2)]">
-                    <span className="text-cyan-400 font-black tracking-widest text-sm uppercase mb-4">Player 1</span>
-                    <span className="text-6xl font-mono text-white tracking-widest glow-text-blue">{playMode === "duel_race" ? p1Progress : p1Score}</span>
-                 </div>
-                 <div className="flex flex-col justify-center font-black text-4xl text-zinc-600 px-4">VS</div>
-                 <div className="px-12 py-10 rounded-[2rem] border border-yellow-500/50 bg-yellow-500/10 flex flex-col items-center w-64 shadow-[0_0_40px_rgba(255,215,0,0.2)]">
-                    <span className="text-yellow-500 font-black tracking-widest text-sm uppercase mb-4">Player 2</span>
-                    <span className="text-6xl font-mono text-white tracking-widest glow-text-gold">{playMode === "duel_race" ? p2Progress : p2Score}</span>
-                 </div>
+            <div className="my-10 w-full kbc-lozenge-wrapper p-2 animate-pulse shadow-[0_0_50px_rgba(255,215,0,0.6)]">
+               <div className="kbc-lozenge-inner py-16 bg-[#010115] flex flex-col items-center justify-center">
+                 <p className="text-xl text-yellow-500 font-bold uppercase tracking-[0.5em] mb-6">{playMode === 'interview' ? 'Final Career XP' : 'You go home with'}</p>
+                 <p className="text-[6rem] font-sans font-black text-white tracking-widest drop-shadow-[0_0_30px_rgba(255,255,255,0.8)]">{playMode === 'interview' ? `${interviewXP} XP` : walletBalance}</p>
                </div>
-            ) : (
-               <div className="my-12">
-                 <p className="text-sm text-zinc-400 font-bold uppercase tracking-[0.4em] mb-4">{playMode === 'interview' ? 'Final Career Score' : 'Final Ledger Balance'}</p>
-                 <p className="text-[5rem] font-mono font-black text-white tracking-tighter drop-shadow-[0_0_30px_rgba(255,255,255,0.4)]">{playMode === 'interview' ? `${interviewXP} XP` : walletBalance}</p>
-               </div>
-            )}
+            </div>
 
-            <button onClick={() => window.location.reload()} className="mt-4 px-12 py-5 rounded-full bg-white text-zinc-950 font-black tracking-[0.2em] text-xs uppercase hover:scale-110 transition-transform shadow-[0_0_40px_rgba(255,255,255,0.6)]">Return Home</button>
+            <button onClick={() => window.location.reload()} className="mt-8 px-16 py-6 rounded-full bg-gradient-to-b from-yellow-300 to-yellow-600 text-black font-black tracking-[0.3em] text-xl uppercase hover:scale-110 transition-transform shadow-[0_0_60px_rgba(255,215,0,0.8)] border-2 border-white">Play Again</button>
           </motion.div>
         )}
 
-        {/* ACTIVE GAME */}
+        {/* ACTIVE GAME (KBC TV SET LAYOUT) */}
         {q && gameState === "active" && (
-          <div className="z-10 flex flex-col w-full h-full max-w-[1400px] mx-auto px-6 py-8 relative">
+          <div className="z-10 flex flex-col w-full h-full max-w-[1600px] mx-auto px-8 relative pt-20">
             
-            {/* Header Area */}
-            <header className="flex justify-between items-center w-full pb-8">
-              <div className="flex items-center justify-center gap-10">
-                  <div className="glass-panel-sleek px-8 py-3 rounded-full flex items-center gap-4">
-                    <span className="text-cyan-400 tracking-[0.3em] text-[10px] uppercase font-black">{playMode === 'interview' ? 'Quota:' : 'Ledger:'}</span>
-                    <span className="font-mono text-white tracking-widest text-xl font-bold">{playMode === 'interview' ? `${interviewXP} XP` : walletBalance}</span>
-                  </div>
+            {/* Top HUD: Logo, Timer & Lifelines */}
+            <header className="flex justify-between items-center w-full px-12 z-50">
+               {/* Left: Current Level Box */}
+               <div className="flex flex-col items-start bg-[#05051a] border border-white/20 p-6 rounded-2xl shadow-[0_0_30px_rgba(0,100,255,0.2)]">
+                  <span className="text-yellow-500 tracking-[0.4em] text-xs uppercase font-black mb-2">Question</span>
+                  <span className="font-mono text-white tracking-widest text-4xl font-bold">{String(level+1)}<span className="text-zinc-600 text-xl font-light">/16</span></span>
+               </div>
 
-                  <div className="glass-panel-sleek px-6 py-3 rounded-full flex items-center gap-3">
-                     <span className="text-zinc-500 tracking-[0.2em] text-[10px] uppercase font-black">Level</span>
-                     <span className="font-mono text-white tracking-widest text-xl font-bold">{String(level+1).padStart(2,'0')} <span className="text-zinc-500">/ 16</span></span>
-                  </div>
+               {/* Center: The KBC Massive Circular Clock */}
+               <div className={`relative flex items-center justify-center transform scale-[1.3] ${timer <= 15 ? 'heartbeat-rapid' : ''}`}>
+                  <div className="absolute inset-0 bg-blue-900/40 rounded-full blur-xl animate-pulse"></div>
+                  <svg width="180" height="180" className="absolute" style={{ transform: 'rotate(-90deg)' }}>
+                    <circle cx="90" cy="90" r="82" stroke="rgba(255,255,255,0.1)" strokeWidth="8" fill="#01011A" />
+                    {/* Ring notches tracking time */}
+                    <circle cx="90" cy="90" r="82" stroke={timer <= 10 ? '#dc2626' : timer <= 30 ? '#eab308' : '#3b82f6'} strokeWidth="8" fill="none" strokeLinecap="round" strokeDasharray={`${2 * Math.PI * 82}`} strokeDashoffset={`${2 * Math.PI * 82 * (1 - timer / 90)}`} className="transition-all duration-1000 ease-linear shadow-[0_0_20px_rgba(0,100,255,0.8)]" />
+                  </svg>
+                  <span className={`text-[4.5rem] font-black font-sans tracking-tighter relative z-10 ${
+                    timer <= 10 ? 'text-red-500 drop-shadow-[0_0_20px_rgba(220,38,38,1)]' : timer <= 30 ? 'text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,1)]' : 'text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.6)]'
+                  }`}>{timer.toString().padStart(2,'0')}</span>
+               </div>
 
-                  {playMode === "solo" && (
-                     <div className="flex gap-2 isolate">
-                        <LifelinePanel lifelines={lifelines} onUse={useLifeline} disabled={selectedOpt !== null} />
-                     </div>
-                  )}
-
-                  {playMode === "solo" && streak >= 2 && (
-                    <motion.div initial={{scale:0.5,opacity:0}} animate={{scale:1,opacity:1}} transition={{type:"spring", bounce:0.6}} className="px-6 py-3 rounded-full border border-yellow-500/30 bg-yellow-500/20 flex items-center gap-3 shadow-[0_0_20px_rgba(255,215,0,0.3)]">
-                      <span className="text-yellow-500 text-lg">🔥</span>
-                      <span className="text-xs font-black text-yellow-500 tracking-widest uppercase">{streak} Streak</span>
-                    </motion.div>
-                  )}
-              </div>
-              
-              <div className="flex items-center gap-4">
-                {playMode === "duel_host" && (
-                  <div className="px-6 py-3 rounded-full border border-yellow-500/50 text-yellow-500 text-[10px] tracking-widest font-black uppercase bg-yellow-500/10 backdrop-blur shadow-[0_0_20px_rgba(255,215,0,0.2)]">
-                     {hostRevealed ? `CORRECT: ${String.fromCharCode(65 + q.ans)}` : 'REVEAL: [SPACE]'}
-                  </div>
-                )}
-                {(playMode === "solo" || playMode === "interview") && (
-                  <button onClick={() => { VoiceEngine.speak("Leaving already? Stay safe."); setGameState("extracted"); }} className="px-8 py-3 rounded-full text-xs font-black tracking-widest uppercase text-red-400 bg-red-500/10 hover:text-white border border-red-500/30 hover:bg-red-500/40 hover:shadow-[0_0_20px_rgba(220,38,38,0.5)] transition-all">Withdraw</button>
-                )}
-              </div>
+               {/* Right: Lifelines */}
+               <div className="flex gap-4 isolate scale-110">
+                  <LifelinePanel lifelines={lifelines} onUse={useLifeline} disabled={selectedOpt !== null} />
+               </div>
             </header>
 
-            {/* Duel Race Progress Bars */}
-            {playMode === "duel_race" && (
-              <div className="absolute top-6 left-1/2 -translate-x-1/2 w-full max-w-lg flex items-center justify-between gap-8 z-50">
-                <div className="flex-1 flex flex-col items-end gap-2">
-                   <span className="text-xs font-mono font-black text-cyan-400 uppercase tracking-widest">P1 {p1Progress}/16</span>
-                   <div className="h-2 w-full bg-cyan-950/50 rounded-full overflow-hidden flex justify-end border border-cyan-500/30"><div className="h-full bg-cyan-400 shadow-[0_0_10px_rgba(0,240,255,1)] transition-all" style={{ width: `${(p1Progress/16)*100}%` }}/></div>
-                </div>
-                <div className="flex-1 flex flex-col items-start gap-2">
-                   <span className="text-xs font-mono font-black text-yellow-500 uppercase tracking-widest">P2 {p2Progress}/16</span>
-                   <div className="h-2 w-full bg-yellow-950/50 rounded-full overflow-hidden flex border border-yellow-500/30"><div className="h-full bg-yellow-400 shadow-[0_0_10px_rgba(255,215,0,1)] transition-all" style={{ width: `${(p2Progress/16)*100}%` }}/></div>
-                </div>
-              </div>
-            )}
-
-            <div className="flex-1 flex gap-12 w-full pt-4">
-              {/* Left Column: Money Ladder */}
+            <div className="flex-1 flex w-full relative z-10 mt-16 pb-12 items-end">
+              
+              {/* Left Column: Authentic Money Tree */}
               {(playMode === "solo" || playMode === "interview") && (
-                 <div className="hidden lg:flex w-[280px] pt-8 items-start relative z-20">
+                 <div className="hidden lg:flex w-[320px] pl-4 justify-start">
                     <MoneyLadder currentLevel={level} prizeLadder={PRIZE_LADDER} mode={playMode} />
                  </div>
               )}
 
-              {/* Main Column: Game Area */}
-              <div className="flex-1 flex flex-col items-center justify-center relative">
-                
-                {/* Heartbeat Circular Timer (High Tension) */}
-                <div className={`relative mb-12 flex items-center justify-center ${timer <= 15 ? 'heartbeat-rapid' : ''}`}>
-                  <svg width="140" height="140" className="absolute" style={{ transform: 'rotate(-90deg)' }}>
-                    <circle cx="70" cy="70" r="62" stroke="rgba(255,255,255,0.05)" strokeWidth="6" fill="none" />
-                    <circle
-                      cx="70" cy="70" r="62"
-                      stroke={timer <= 10 ? '#ef4444' : timer <= 25 ? '#eab308' : '#22d3ee'}
-                      strokeWidth="6" fill="none" strokeLinecap="round"
-                      strokeDasharray={`${2 * Math.PI * 62}`}
-                      strokeDashoffset={`${2 * Math.PI * 62 * (1 - timer / 90)}`}
-                      className="tension-bar"
-                      style={{ filter: `drop-shadow(0 0 12px ${timer<=10?'#ef4444':timer<=25?'#eab308':'#22d3ee'})` }}
-                    />
-                  </svg>
-                  <span className={`text-5xl font-black font-mono tracking-tighter relative z-10 ${
-                    timer <= 10 ? 'text-red-500 glow-text-red' : timer <= 25 ? 'text-yellow-500 text-glow-gold' : 'text-cyan-400 text-glow-blue'
-                  }`}>{timer.toString().padStart(2,'0')}</span>
-                </div>
-
+              {/* Center: The KBC Question Plate */}
+              <div className="flex-1 flex flex-col items-center absolute bottom-12 w-full left-0 right-0 pointer-events-none">
                 <AnimatePresence mode="wait">
-                  <motion.div key={`block-${level}`} initial={{ opacity: 0, y: 30, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -20, scale: 0.95 }} transition={{ type: "spring", bounce: 0.4 }} className="w-full flex flex-col items-center max-w-[900px]">
+                  <motion.div key={`block-${level}`} initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", bounce: 0.3 }} className="w-full flex flex-col items-center max-w-[1100px] pointer-events-auto">
                     
-                    <div className="w-full min-h-[180px] flex flex-col justify-center items-center text-center px-4 mb-12 glass-panel-sleek rounded-[3rem] py-16 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-                       <h2 className="text-[2.2rem] md:text-[3rem] font-medium leading-[1.3] text-white tracking-tight px-10">
-                         {displayedQuestion}<span className="animate-pulse text-cyan-500 ml-2">|</span>
-                       </h2>
+                    {/* Audience Poll Graph (Feature 5) */}
+                    {showPoll && (
+                      <motion.div initial={{opacity:0, scale:0.5, y: 100}} animate={{opacity:1, scale:1, y: -20}} transition={{ type: "spring", stiffness: 200 }} className="absolute bottom-[400px] z-[200] p-10 bg-[#01011A] border-4 border-yellow-500 rounded-[3rem] w-[500px] flex items-end justify-between h-[300px] shadow-[0_0_80px_rgba(255,215,0,0.4)]">
+                        {['A','B','C','D'].map((ltr, i) => (
+                          <div key={ltr} className="flex flex-col items-center flex-1 gap-4 h-full justify-end">
+                            <span className="text-xl text-yellow-400 font-sans font-black drop-shadow-md">{showPoll[i]}%</span>
+                            <div className="w-16 bg-[#0a1236] rounded-t-lg relative overflow-hidden transition-all duration-[2000ms] shadow-inner" style={{height:`${showPoll[i]}%`, minHeight:'20px'}}>
+                              <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-yellow-600 to-yellow-300 shadow-[0_0_20px_rgba(255,215,0,0.8)]" style={{height:'100%'} as any} />
+                            </div>
+                            <span className="text-2xl font-black text-white">{ltr}</span>
+                          </div>
+                        ))}
+                      </motion.div>
+                    )}
 
-                       {/* Audience Poll Chart */}
-                       {showPoll && (
-                         <motion.div initial={{opacity:0, scale:0.9, y: 20}} animate={{opacity:1, scale:1, y: 0}} transition={{ type: "spring" }} className="mt-14 p-8 glass-panel-sleek rounded-[2rem] w-full max-w-[420px] flex items-end justify-between h-40 gap-8 border-cyan-500/30">
-                           {['A','B','C','D'].map((ltr, i) => (
-                             <div key={ltr} className="flex flex-col items-center flex-1 gap-3 h-full justify-end">
-                               <span className="text-xs text-cyan-300 font-mono font-bold">{showPoll[i]}%</span>
-                               <div className="w-full bg-cyan-950/50 rounded-t-xl relative overflow-hidden transition-all duration-[1500ms] border border-cyan-500/20 shadow-[0_0_15px_rgba(0,240,255,0.2)]" style={{height:`${showPoll[i]}%`, minHeight:'6px'}}>
-                                 <div className="absolute top-0 left-0 w-full bg-gradient-to-t from-cyan-600 to-cyan-300" style={{height:'100%'} as any} />
-                               </div>
-                               <span className="text-sm font-black text-white">{ltr}</span>
-                             </div>
-                           ))}
-                         </motion.div>
-                       )}
-                       {oracleLog && !showPoll && (
-                         <motion.div initial={{opacity:0, y: 10}} animate={{opacity:1, y: 0}} className="mt-10 text-sm font-bold tracking-widest text-yellow-400 glass-panel-gold px-10 py-5 rounded-2xl uppercase">
-                           {oracleLog}
-                         </motion.div>
-                       )}
+                    {/* Question Box - Authentic KBC Strip */}
+                    <div className="w-full kbc-lozenge-wrapper p-[2px] mb-6 shadow-[0_0_40px_rgba(0,100,255,0.4)]">
+                       <div className="kbc-lozenge-inner py-10 px-12 min-h-[140px] flex items-center justify-center text-center">
+                          <h2 className="text-[2rem] md:text-[2.2rem] font-medium leading-[1.4] text-white tracking-wide">
+                            {displayedQuestion}<span className="animate-pulse text-yellow-500 font-bold ml-1">_</span>
+                          </h2>
+                       </div>
                     </div>
 
-                    <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 relative z-20">
+                    {/* Options Grid */}
+                    <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-0 relative z-20">
                       {q.options.map((opt: string, i: number) => (
-                         <div key={`opt-${level}-${i}`} className="relative pl-0 w-full">
-                           {hoveredOpt === i && selectedOpt === null && pendingAnswer === null && aiHints.current[i] !== undefined && (
-                             <motion.div initial={{opacity:0, y:10, scale: 0.8}} animate={{opacity:1, y:0, scale: 1}} className="absolute -top-10 left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-xl bg-black border border-yellow-500/50 shadow-[0_0_20px_rgba(255,215,0,0.5)] text-xs text-yellow-400 font-bold flex items-center gap-2 whitespace-nowrap">
-                               <span className="text-yellow-500 animate-pulse text-lg">♦</span> {aiHints.current[i]}% Oracle Confidence
-                             </motion.div>
-                           )}
+                         <div key={`opt-${level}-${i}`} className="w-full relative px-2">
                            <OptionCard index={i} text={opt} selected={selectedOpt === i} correct={selectedOpt === i ? isCorrect : (isCorrect === false && i === q.ans ? true : null)} eliminated={eliminatedOpts.includes(i)} onClick={() => execOption(i)} playMode={playMode} />
                          </div>
                       ))}
                     </div>
+
                   </motion.div>
                 </AnimatePresence>
               </div>
 
-               {/* Right Filler for centering when Solo */}
-               {(playMode === "solo" || playMode === "interview") && <div className="hidden lg:block w-[280px]" />}
             </div>
           </div>
         )}
