@@ -842,19 +842,19 @@ export default function NeuralArena() {
                </div>
             </header>
 
-            <div className="flex-1 flex w-full relative z-10 mt-16 pb-12 items-end">
+            <div className="flex-1 flex w-full relative z-10 mt-12 pb-12">
               
               {/* Left Column: Authentic Money Tree */}
               {(playMode === "solo" || playMode === "interview") && (
-                 <div className="hidden lg:flex w-[320px] pl-4 justify-start">
+                 <div className="hidden lg:flex w-[320px] pl-4 justify-start shrink-0">
                     <MoneyLadder currentLevel={level} prizeLadder={PRIZE_LADDER} mode={playMode} />
                  </div>
               )}
 
               {/* Center: The KBC Question Plate */}
-              <div className="flex-1 flex flex-col items-center absolute bottom-12 w-full left-0 right-0 pointer-events-none">
+              <div className="flex-1 flex flex-col items-center justify-end w-full px-4 md:px-12 mt-12 lg:mt-0">
                 <AnimatePresence mode="wait">
-                  <motion.div key={`block-${level}`} initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", bounce: 0.3 }} className="w-full flex flex-col items-center max-w-[1100px] pointer-events-auto">
+                  <motion.div key={`block-${level}`} initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", bounce: 0.3 }} className="w-full flex flex-col items-center max-w-[1100px] gap-8">
                     
                     {/* Audience Poll Graph (Feature 5) */}
                     {showPoll && (
@@ -872,16 +872,16 @@ export default function NeuralArena() {
                     )}
 
                     {/* Question Box - Authentic KBC Strip */}
-                    <div className="w-full kbc-lozenge-wrapper p-[2px] mb-6 shadow-[0_0_40px_rgba(0,100,255,0.4)]">
-                       <div className="kbc-lozenge-inner py-10 px-12 min-h-[140px] flex items-center justify-center text-center">
-                          <h2 className="text-[2rem] md:text-[2.2rem] font-medium leading-[1.4] text-white tracking-wide">
+                    <div className="w-full kbc-lozenge-wrapper p-[2px] shadow-[0_0_40px_rgba(0,100,255,0.4)] relative">
+                       <div className="kbc-lozenge-inner py-10 px-12 md:px-20 min-h-[140px] flex items-center justify-center text-center">
+                          <h2 className="text-xl md:text-[2.2rem] font-medium leading-[1.4] text-white tracking-wide">
                             {displayedQuestion}<span className="animate-pulse text-yellow-500 font-bold ml-1">_</span>
                           </h2>
                        </div>
                     </div>
 
                     {/* Options Grid */}
-                    <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-0 relative z-20">
+                    <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12 relative z-20 mt-4">
                       {q.options.map((opt: string, i: number) => (
                          <div key={`opt-${level}-${i}`} className="w-full relative px-2">
                            <OptionCard index={i} text={opt} selected={selectedOpt === i} correct={selectedOpt === i ? isCorrect : (isCorrect === false && i === q.ans ? true : null)} eliminated={eliminatedOpts.includes(i)} onClick={() => execOption(i)} playMode={playMode} />
