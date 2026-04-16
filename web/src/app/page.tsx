@@ -87,8 +87,8 @@ const VoiceEngine = {
     if (v) this.selectedVoice = v;
   },
 
-  // LDR: pitch ~0.72, rate ~0.76 = dreamy, slow, slightly lower than default
-  speak(text: string, pitch = 0.72, rate = 0.76) {
+  // LDR Cinematic Persona: Deep, breathy, intentional delivery
+  speak(text: string, pitch = 0.60, rate = 0.70) {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
