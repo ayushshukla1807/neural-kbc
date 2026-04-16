@@ -36,9 +36,9 @@ export default function OptionCard({ index, text, selected, correct, eliminated,
   if (selected) {
     kbcState = ""; // remove hover
     if (correct === null) {
-      kbcState = "kbc-locked"; // Orange / Amber flashing
-      letterColor = "text-white";
-      textColor = "text-white";
+      kbcState = "kbc-locked animate-pulse brightness-[1.5] scale-[1.02] shadow-[0_0_40px_rgba(255,160,0,0.8)]"; // Intense strobe Lock
+      letterColor = "text-white drop-shadow-[0_0_10px_white]";
+      textColor = "text-white glow-text-gold";
     } else if (correct === true) {
       kbcState = "kbc-correct"; // Green
       letterColor = "text-white";
