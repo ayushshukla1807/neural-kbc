@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: neural-kbc-arena
+    env: node
+    region: oregon
+    plan: free # Can be upgraded to starter later
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      - key: NODE_ENV
+        value: production
