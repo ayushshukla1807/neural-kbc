@@ -1,0 +1,10 @@
+var R=require("../../chunks/ssr/[turbopack]_runtime.js")("server/app/_global-error/page.js")
+R.c("server/chunks/ssr/[root-of-the-server]__0gx5cul._.js")
+R.c("server/chunks/ssr/0~xe_0s7_x2m._.js")
+R.c("server/chunks/ssr/0~xe_next_dist_esm_build_templates_app-page_06i0edg.js")
+R.c("server/chunks/ssr/[root-of-the-server]__0c8s-h.._.js")
+R.c("server/chunks/ssr/0~xe_next_dist_0za8v7m._.js")
+R.c("server/chunks/ssr/0~xe_next_dist_client_components_builtin_global-error_0r8d1dv.js")
+R.c("server/chunks/ssr/neural-kbc_web__next-internal_server_app__global-error_page_actions_0im_k1b.js")
+R.m(78274)
+module.exports=R.m(78274).exports

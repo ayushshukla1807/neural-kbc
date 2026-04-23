@@ -1,0 +1,13 @@
+var R=require("../../chunks/ssr/[turbopack]_runtime.js")("server/app/_not-found/page.js")
+R.c("server/chunks/ssr/[root-of-the-server]__04mifv5._.js")
+R.c("server/chunks/ssr/0~xe_0s7_x2m._.js")
+R.c("server/chunks/ssr/0~xe_next_dist_esm_build_templates_app-page_024zp0l.js")
+R.c("server/chunks/ssr/[root-of-the-server]__0c8s-h.._.js")
+R.c("server/chunks/ssr/0~xe_next_dist_0za8v7m._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__0cm0wso._.js")
+R.c("server/chunks/ssr/0~xe_next_dist_client_components_0ei5402._.js")
+R.c("server/chunks/ssr/0~xe_next_dist_client_components_builtin_forbidden_12qpih7.js")
+R.c("server/chunks/ssr/0~xe_next_dist_client_components_builtin_unauthorized_0jtk59g.js")
+R.c("server/chunks/ssr/neural-kbc_web__next-internal_server_app__not-found_page_actions_0qkerl2.js")
+R.m(35423)
+module.exports=R.m(35423).exports

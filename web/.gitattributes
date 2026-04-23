@@ -1,0 +1,13 @@
+# Language Detection Overrides
+# Ignore large CSS files from statistics
+*.css linguist-vendored
+src/app/globals.css linguist-vendored
+
+# Ignore third-party or boilerplate files
+node_modules/* linguist-vendored
+package-lock.json linguist-generated
+public/* linguist-vendored
+
+# Prioritize Engineering Languages
+engine/*.py linguist-detectable
+engine/core/*.cpp linguist-detectable
