@@ -1,0 +1,3 @@
+module.exports=[85651,(a,b,c)=>{let{createClientModuleProxy:d}=a.r(8076);a.n(d("[project]/neural-kbc/web/node_modules/next/dist/client/components/builtin/global-error.js <module evaluation>"))},61994,(a,b,c)=>{let{createClientModuleProxy:d}=a.r(8076);a.n(d("[project]/neural-kbc/web/node_modules/next/dist/client/components/builtin/global-error.js"))},628,a=>{"use strict";a.i(85651);var b=a.i(61994);a.n(b)},38428,a=>{a.n(a.i(628))}];
+
+//# sourceMappingURL=0~xe_next_dist_client_components_builtin_global-error_0r8d1dv.js.map
