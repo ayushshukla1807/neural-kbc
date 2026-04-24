@@ -1,0 +1,37 @@
+[
+  {
+    "q": "Which quantum phenomenon explains the instantaneous state change of a particle when its entangled partner is measured?",
+    "options": ["Quantum Tunneling", "Wave-Particle Duality", "Quantum Superposition", "Quantum Entanglement"],
+    "ans": 3,
+    "domain": "Quantum Mechanics",
+    "difficulty_score": 0.95
+  },
+  {
+    "q": "In a distributed system, which theorem states that it is impossible to simultaneously provide Consistency, Availability, and Partition Tolerance?",
+    "options": ["Moore's Law", "CAP Theorem", "Amortized Analysis", "Byzantine Fault Tolerance"],
+    "ans": 1,
+    "domain": "Software Architecture",
+    "difficulty_score": 0.82
+  },
+  {
+    "q": "Which consensus algorithm is primarily used by the Ethereum blockchain following its transition to Proof of Stake?",
+    "options": ["Proof of Work", "Casper", "Paxos", "Raft"],
+    "ans": 1,
+    "domain": "Cryptography",
+    "difficulty_score": 0.88
+  },
+  {
+    "q": "What is the time complexity of searching for an element in a balanced Binary Search Tree (BST)?",
+    "options": ["O(1)", "O(N)", "O(log N)", "O(N log N)"],
+    "ans": 2,
+    "domain": "Algorithms",
+    "difficulty_score": 0.65
+  },
+  {
+    "q": "Which neural network architecture is the foundation for modern Large Language Models like GPT-4 and Gemini?",
+    "options": ["CNN", "RNN", "Transformer", "LSTM"],
+    "ans": 2,
+    "domain": "Machine Learning",
+    "difficulty_score": 0.78
+  }
+]
