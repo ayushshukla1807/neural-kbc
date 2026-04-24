@@ -2,15 +2,13 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import MoneyLadder from "@/components/MoneyLadder";
-import LifelinePanel from "@/components/LifelinePanel";
-import OptionCard from "@/components/OptionCard";
-import ModeSelector from "@/components/ModeSelector";
+import { io, Socket } from "socket.io-client";
 
 // Constants
 const PRIZE_LADDER = [ "0.05 ETH", "0.10 ETH", "0.25 ETH", "0.50 ETH", "1.00 ETH", "2.50 ETH", "5.00 ETH", "10 ETH", "20 ETH", "40 ETH", "100 ETH", "250 ETH", "500 ETH", "1000 ETH", "2500 ETH", "10,000 ETH" ];
 const DOMAINS = ["Software Architecture", "Quantum Mechanics", "Algorithmic Trading", "Global Geopolitics", "Neural Biology", "Avant-Garde Cinema", "Cryptography", "Machine Learning", "Micro-Economics"];
 
+// Master-Tier Audio Synth (Procedural Engine)
 const AudioEngine = {
   ctx: null as AudioContext | null,
   init() { if (!this.ctx) this.ctx = new (window.AudioContext || (window as any).webkitAudioContext)(); },
@@ -24,79 +22,28 @@ const AudioEngine = {
     osc.connect(gain); gain.connect(this.ctx.destination);
     osc.start(); osc.stop(this.ctx.currentTime + dur);
   },
-  // Enhanced KBC Tension Engine
-  tensionInterval: null as any,
-  startTension(bpm: number = 60) {
-    if (this.tensionInterval) clearInterval(this.tensionInterval);
-    const interval = (60 / bpm) * 1000;
-    this.tensionInterval = setInterval(() => {
-      this.play(60, 'sine', 0.1, 0.2); // Low thud 1
-      setTimeout(() => this.play(55, 'sine', 0.1, 0.15), 150); // Low thud 2
-    }, interval);
-  },
-  stopTension() { if (this.tensionInterval) { clearInterval(this.tensionInterval); this.tensionInterval = null; } },
   tick() { this.play(800, 'sine', 0.05, 0.05); },
   hover() { this.play(1200, 'sine', 0.05, 0.02); },
   type() { this.play(5000, 'square', 0.02, 0.01); },
-  lock() { this.stopTension(); this.play(200, 'square', 0.4, 0.2); this.play(150, 'sawtooth', 0.5, 0.3); },
-  win() { this.stopTension(); [400, 500, 600, 800].forEach((f, i) => setTimeout(() => this.play(f, 'sine', 0.5, 0.2), i*100)); },
-  lose() { this.stopTension(); this.play(100, 'sawtooth', 1.5, 0.5); this.play(50, 'square', 2.0, 0.6); },
+  lock() { this.play(200, 'square', 0.4, 0.2); this.play(150, 'sawtooth', 0.5, 0.3); },
+  win() { [400, 500, 600, 800].forEach((f, i) => setTimeout(() => this.play(f, 'sine', 0.5, 0.2), i*100)); },
+  lose() { this.play(100, 'sawtooth', 1.5, 0.5); this.play(50, 'square', 2.0, 0.6); },
   violation() { this.play(1000, 'square', 0.1, 0.5); setTimeout(() => this.play(1000, 'square', 0.2, 0.5), 150); }
 };
 
-// Web Speech API Interface (Lana Del Rey "Sad Girl / Cinematic" Persona)
+// Web Speech API Interface (Indian Actress Host Style)
 const VoiceEngine = {
-  selectedVoice: null as SpeechSynthesisVoice | null,
-  allVoices: [] as SpeechSynthesisVoice[],
-  _callbacks: [] as Array<() => void>,
-
-  init() {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
-    const load = () => {
-      const voices = window.speechSynthesis.getVoices();
-      if (voices.length === 0) return;
-      this.allVoices = voices;
-      if (!this.selectedVoice) {
-        // Priority chain: most LDR-like breathy female voices
-        this.selectedVoice =
-          voices.find(v => v.name === "Samantha") ||
-          voices.find(v => v.name === "Victoria") ||
-          voices.find(v => v.name === "Ava") ||
-          voices.find(v => v.name.includes("Google US English")) ||
-          voices.find(v => v.name.includes("Microsoft Zira")) ||
-          voices.find(v => v.name.includes("Microsoft Eva")) ||
-          voices.find(v => v.lang.startsWith("en-US") && !v.name.toLowerCase().includes("male")) ||
-          voices.find(v => v.lang.startsWith("en-GB")) ||
-          voices.find(v => v.lang.startsWith("en")) ||
-          null;
-      }
-      this._callbacks.forEach(fn => fn());
-    };
-    window.speechSynthesis.onvoiceschanged = load;
-    // Chrome loads voices async — retry several times
-    [0, 100, 300, 700, 1500, 3000].forEach(ms => setTimeout(load, ms));
-  },
-
-  onLoaded(fn: () => void) {
-    if (this.allVoices.length > 0) { fn(); return; }
-    this._callbacks.push(fn);
-  },
-
-  setVoice(name: string) {
-    const v = this.allVoices.find(v => v.name === name);
-    if (v) this.selectedVoice = v;
-  },
-
-  // LDR Cinematic Persona: Deep, breathy, intentional delivery
-  speak(text: string, pitch = 0.60, rate = 0.70) {
+  speak(text: string, pitch = 1.15, rate = 0.95) {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
     window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    if (this.selectedVoice) u.voice = this.selectedVoice;
-    u.pitch = pitch;
-    u.rate = rate;
-    u.volume = 1.0;
-    window.speechSynthesis.speak(u);
+    const utterance = new SpeechSynthesisUtterance(text);
+    const voices = window.speechSynthesis.getVoices();
+    let activeVoice = voices.find(v => (v.lang === "en-IN" || v.lang === "hi-IN") && (v.name.includes("Female") || v.name.includes("Neerja") || v.name.includes("Lekha")));
+    if (!activeVoice) activeVoice = voices.find(v => v.lang.includes("en-IN") || v.lang.includes("hi-IN"));
+    if (activeVoice) utterance.voice = activeVoice;
+    
+    utterance.pitch = pitch; utterance.rate = rate; utterance.volume = 1.0;
+    window.speechSynthesis.speak(utterance);
   }
 };
 
@@ -105,43 +52,18 @@ const itemVariants: any = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1
 
 export default function NeuralArena() {
   const [level, setLevel] = useState(0);
-  const [availableVoices, setAvailableVoices] = useState<string[]>([]);
-  const [selectedVoiceName, setSelectedVoiceName] = useState("");
-  const [showVoicePicker, setShowVoicePicker] = useState(false);
-
-  useEffect(() => {
-    VoiceEngine.init();
-    VoiceEngine.onLoaded(() => {
-      // Hardcode to Lana Del Rey / Samantha / Daniel etc to simulate a premium Host
-      let tvHostVoice = VoiceEngine.allVoices.find(v => v.name.includes("Lana")) ||
-                         VoiceEngine.allVoices.find(v => v.name.includes("Samantha")) ||
-                         VoiceEngine.allVoices.find(v => v.name.includes("Daniel"));
-                         
-      if (tvHostVoice) {
-        VoiceEngine.setVoice(tvHostVoice.name);
-      } else if (VoiceEngine.allVoices.length > 0) {
-        VoiceEngine.setVoice(VoiceEngine.allVoices[0].name);
-      }
-    });
-  }, []);
-
-  const handleVoiceChange = (name: string) => {
-    VoiceEngine.setVoice(name);
-    setSelectedVoiceName(name);
-    VoiceEngine.speak("I've been waiting... like a dream you almost remember.");
-  };
-
   const [timer, setTimer] = useState(60);
   const [gameState, setGameState] = useState<"lobby"|"onboarding"|"loading_llm"|"decrypting"|"active"|"eliminated"|"victorious"|"extracted">("lobby");
   
-  // Game Mode State (SRK Version)
-  const [playMode, setPlayMode] = useState<"solo" | "duel_host" | "duel_race" | "interview" | null>(null);
+  // Game Mode State
+  const [playMode, setPlayMode] = useState<"solo" | "duel" | null>(null);
   const [p1Score, setP1Score] = useState(0);
   const [p2Score, setP2Score] = useState(0);
-  const [p1Progress, setP1Progress] = useState(0);
-  const [p2Progress, setP2Progress] = useState(0);
-  const [interviewXP, setInterviewXP] = useState(0);
-  const [hostRevealed, setHostRevealed] = useState(false);
+  const socketRef = useRef<Socket | null>(null);
+  const [globalLeaderboard, setGlobalLeaderboard] = useState<any[]>([]);
+  const [realtimeAnalytics, setRealtimeAnalytics] = useState({ avgLatency: 0, activeNodes: 0, throughput: "0/s" });
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [selectedArena, setSelectedArena] = useState("GLOBAL_MAIN");
 
   const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
   const [activeQuestions, setActiveQuestions] = useState<any[]>([]);
@@ -159,46 +81,6 @@ export default function NeuralArena() {
   const [showViolationWarning, setShowViolationWarning] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
   const [decryptionHash, setDecryptionHash] = useState("0x000000");
-
-  // 🔥 Streak
-  const [streak, setStreak] = useState(0);
-  // 🌈 Screen flash
-  const [screenFlash, setScreenFlash] = useState<'correct'|'wrong'|'milestone'|null>(null);
-  // 🎊 Confetti
-  const confettiRef = useRef<HTMLCanvasElement>(null);
-  const [showPoll, setShowPoll] = useState<number[]|null>(null);
-  const [pollKey, setPollKey] = useState(0);
-
-  // ✅ Feature 1: Final Answer confirmation modal
-  const [pendingAnswer, setPendingAnswer] = useState<number|null>(null);
-  const [finalCountdown, setFinalCountdown] = useState(3);
-
-  // ✍️ Feature 2: Typewriter question display
-  const [displayedQuestion, setDisplayedQuestion] = useState("");
-
-  // 🔢 Feature 3: Question number splash
-  const [showQuestionSplash, setShowQuestionSplash] = useState(false);
-
-  // 🌟 Feature 4: Hot-streak aura (triggers at streak >= 5)
-  // (derived from streak state above)
-
-  // ⏱️ Feature 5: Confidence meter
-  const [questionStartTime, setQuestionStartTime] = useState<number>(0);
-  const [confidenceScore, setConfidenceScore] = useState<number|null>(null);
-
-  // 🤖 Feature 6: AI hint hover
-  const [hoveredOpt, setHoveredOpt] = useState<number|null>(null);
-  const aiHints = useRef<number[]>([]);
-
-  // 🏆 Feature 7: Milestone celebration (levels 5 + 10)
-  const [milestoneText, setMilestoneText] = useState("");
-
-  // 🎨 Feature 8: Dynamic ambient hue shift
-  const [ambientHue, setAmbientHue] = useState(260); // starts at purple
-
-  // 💀 Feature 9: Walk of Shame — tracked via gameState 'eliminated' already
-  // 💥 Feature 10: Glitch wrong answer card
-  const [glitchCard, setGlitchCard] = useState<number|null>(null);
 
   const [hudLogs, setHudLogs] = useState<string[]>([]);
   const pushLog = (msg: string) => { setHudLogs(p => [...p.slice(-6), `>[SYS] ${msg}`]); AudioEngine.type(); };
@@ -222,81 +104,26 @@ export default function NeuralArena() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const q = activeQuestions.length > 0 ? activeQuestions[Math.min(level, activeQuestions.length - 1)] : null;
 
-  // ── Feature 2: Typewriter effect for question ──
   useEffect(() => {
-    if (!q) return;
-    setDisplayedQuestion("");
-    let i = 0;
-    const text = q.q;
-    const interval = setInterval(() => {
-      i++;
-      setDisplayedQuestion(text.slice(0, i));
-      if (i >= text.length) clearInterval(interval);
-    }, 22); // ~22ms per char = fast cinematic pace
-    return () => clearInterval(interval);
-  }, [level, q]);
+    // Initialize Real-time Socket Connection (Using relative path for Nginx Proxy)
+    const socketUrl = process.env.NEXT_PUBLIC_REALTIME_SERVICE_URL || "";
+    socketRef.current = io(socketUrl, { path: "/socket.io" });
+    socketRef.current.on("connect", () => pushLog("LINK ESTABLISHED: REALTIME_SYNC_NODE"));
+    socketRef.current.on("leaderboard_update", (data) => setGlobalLeaderboard(data));
+    socketRef.current.on("analytics_update", (data) => setRealtimeAnalytics(data));
+    socketRef.current.on("player_joined", (data) => pushLog(`NODE JOINED: ${data.userId} via ${data.shard}`));
 
-  // ── Feature 3: Question splash ──
-  useEffect(() => {
-    if (gameState === "active" && q) {
-      setShowQuestionSplash(true);
-      setQuestionStartTime(Date.now());
-      setConfidenceScore(null);
-      // Generate fresh AI hints for this question
-      const hints = [0,1,2,3].map(i => i === q.ans ? Math.floor(Math.random()*30)+45 : Math.floor(Math.random()*20)+5);
-      // Normalise to 100
-      const sum = hints.reduce((a,b)=>a+b,0);
-      aiHints.current = hints.map(h => Math.round((h/sum)*100));
-      const t = setTimeout(() => setShowQuestionSplash(false), 1400);
-      return () => clearTimeout(t);
-    }
-  }, [level, q, gameState]);
-
-  // ── Feature 8: Ambient hue shift with level progress ──
-  useEffect(() => {
-    // Hue: 260 (purple) → 200 (cyan) → 40 (gold) as level rises  
-    const hue = Math.round(260 - (level / 15) * 220);
-    setAmbientHue(hue);
-  }, [level]);
-
-  // ── Feature 1: Final-answer countdown ──
-  useEffect(() => {
-    if (pendingAnswer === null) { setFinalCountdown(3); return; }
-    setFinalCountdown(3);
-    let count = 3;
-    const iv = setInterval(() => {
-      count--;
-      setFinalCountdown(count);
-      AudioEngine.tick();
-      if (count <= 0) {
-        clearInterval(iv);
-        const idx = pendingAnswer;
-        setPendingAnswer(null);
-        // Commit the actual answer
-        if (!q) return;
-        AudioEngine.lock();
-        setSelectedOpt(idx);
-        pushLog(`VECTOR OPTION ${String.fromCharCode(65 + idx)} COMMITTED.`);
-        const correct = idx === q.ans;
-        // Confidence: how fast they answered (max 60s -> 0%, instant -> 100%)
-        const elapsed = (Date.now() - questionStartTime) / 1000;
-        setConfidenceScore(Math.max(5, Math.round(100 - (elapsed / 60) * 90)));
-        setIsCorrect(correct);
-        if (!correct) { setGlitchCard(idx); setTimeout(() => setGlitchCard(null), 1000); }
-        setTimeout(() => executeCryptographicCheck(correct, level + 1), 1500);
-      }
-    }, 1000);
-    return () => clearInterval(iv);
-  }, [pendingAnswer]);
+    return () => { socketRef.current?.disconnect(); };
+  }, []);
 
   useEffect(() => {
     if (gameState === "active" && q && selectedOpt === null) {
       setTimeout(() => {
-        const script = playMode?.startsWith("duel")
-          ? `The shadows are long... player. Listen to the question. ${q.q}. A, ${q.options[0]}. B, ${q.options[1]}. C, ${q.options[2]}. Or D, ${q.options[3]}. Choose your destiny.`
-          : `I've been waiting for this... ${q.q}. Option A, ${q.options[0]}. Option B, ${q.options[1]}. Option C, ${q.options[2]}. Or Option D, ${q.options[3]}. Don't keep me waiting.`;
-        VoiceEngine.speak(script);
-      }, 1200);
+        const script = playMode === "duel" 
+          ? `Dono khiladiyan tayyar! Prashna hai, ${q.q}. Aapke options: A, ${q.options[0]}. B, ${q.options[1]}. C, ${q.options[2]}. D, ${q.options[3]}. Apni keys dabayein ab!`
+          : `Agla prashna, aapke neural grid par, yeh raha. ${q.q}. Aapke options hain... Option A, ${q.options[0]}. Option B, ${q.options[1]}. Option C, ${q.options[2]}. Aur Option D, ${q.options[3]}. Aapka samay, shuru hota hai ab!`;
+        VoiceEngine.speak(script, 1.2, 0.92);
+      }, 800);
     }
   }, [level, q, gameState, playMode]);
 
@@ -306,30 +133,26 @@ export default function NeuralArena() {
       // Secret unlocker
       keys += e.key;
       if (keys.includes("hack")) {
-        VoiceEngine.speak("The classified protocol... it's like a dream coming true. Welcome to the shadows.", 0.6, 0.75);
+        VoiceEngine.speak("Classified protocol unlocked. Swagat hai.", 0.8, 1.0);
         pushLog("CLASSIFIED DOMAIN ADDED: OMNI-GUARD SYSTEM EXPLOITS");
         setAvailableDomains(p => Array.from(new Set(["OmniGuard Exploits", ...p])));
         keys = "";
       }
 
       // Offline Multiplayer Duel Logic (Fastest Finger First via Keyboard)
-      if (gameState === "active" && (playMode?.startsWith("duel") || playMode === "interview") && selectedOpt === null) {
+      if (gameState === "active" && playMode === "duel" && selectedOpt === null) {
         const p1Keys = ['q', 'w', 'e', 'r'];
         const p2Keys = ['u', 'i', 'o', 'p'];
         const key = e.key.toLowerCase();
         
-        // Host Overrides
-        if (playMode === "duel_host") {
-          if (key === 'Enter' && hostRevealed) { setHostRevealed(false); executeCryptographicCheck(true, level + 1); return; }
-          if (key === ' ') { setHostRevealed(prev => !prev); AudioEngine.hover(); return; }
-        }
-
         let p1Choice = p1Keys.indexOf(key);
         let p2Choice = p2Keys.indexOf(key);
         
         if (p1Choice !== -1) {
+          pushLog(`P1 LOCKED OPTION ${String.fromCharCode(65 + p1Choice)}`);
           executeDuelChoice(p1Choice, 1);
         } else if (p2Choice !== -1) {
+          pushLog(`P2 LOCKED OPTION ${String.fromCharCode(65 + p2Choice)}`);
           executeDuelChoice(p2Choice, 2);
         }
       }
@@ -341,69 +164,19 @@ export default function NeuralArena() {
   const executeDuelChoice = (choiceIndex: number, playerNum: number) => {
     if (!q) return;
     AudioEngine.lock();
-    if (playMode === "duel_race") {
-       const correct = choiceIndex === q.ans;
-       if (playerNum === 1) {
-          setP1Progress(prev => prev + (correct ? 1 : 0));
-          pushLog(`P1: LEVEL ${p1Progress + (correct ? 1 : 0)} ARCHIVED.`);
-       } else {
-          setP2Progress(prev => prev + (correct ? 1 : 0));
-          pushLog(`P2: LEVEL ${p2Progress + (correct ? 1 : 0)} ARCHIVED.`);
-       }
-       
-       if (p1Progress >= 15 || p2Progress >= 15) {
-          VoiceEngine.speak("Race concluded! Humarey paas ek vijeta hai.", 0.85, 1.1);
-          setGameState("victorious");
-       }
-       return;
-    }
-
     setSelectedOpt(choiceIndex);
     const correct = choiceIndex === q.ans;
     setIsCorrect(correct);
     setTimeout(() => {
        if (correct) {
           if(playerNum===1) setP1Score(p=>p+1); else setP2Score(p=>p+1);
-          VoiceEngine.speak(`Beautifully correctly... player ${playerNum}. Like a masterpiece.`, 0.65, 0.8);
+          VoiceEngine.speak(`Player ${playerNum} ne bilkul sahi jawaab diya hai!`, 1.3, 0.95);
        } else {
-          VoiceEngine.speak(`So tragic... player ${playerNum}. But we're born to lose.`, 0.6, 0.85);
+          VoiceEngine.speak(`Galat jawab! Player ${playerNum} peeche reh gaye.`, 1.0, 0.85);
        }
-       executeCryptographicCheck(true, level + 1);
+       executeCryptographicCheck(true, level + 1); // Auto-advance in duel mode regardless to keep party game flow
     }, 2000);
   };
-
-  // ─── Confetti engine ───
-  const launchConfetti = () => {
-    const canvas = confettiRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-    const pieces = Array.from({length: 180}).map(() => ({
-      x: Math.random() * canvas.width, y: Math.random() * canvas.height - canvas.height,
-      vx: (Math.random() - 0.5) * 8, vy: Math.random() * 6 + 3,
-      color: `hsl(${Math.random()*360},100%,60%)`,
-      size: Math.random() * 10 + 5, rot: Math.random()*360, rotV: (Math.random()-0.5)*8
-    }));
-    let frames = 0;
-    const draw = () => {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      pieces.forEach(p => {
-        p.x+=p.vx; p.y+=p.vy; p.rot+=p.rotV; p.vy+=0.15;
-        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180);
-        ctx.fillStyle=p.color; ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size/2);
-        ctx.restore();
-      });
-      frames++;
-      if(frames<120) requestAnimationFrame(draw);
-      else ctx.clearRect(0,0,canvas.width,canvas.height);
-    };
-    draw();
-  };
-
-  useEffect(() => {
-    return () => AudioEngine.stopTension();
-  }, []);
 
   useEffect(() => {
     // Particle matrix code logic
@@ -450,7 +223,7 @@ export default function NeuralArena() {
   }, [gameState, isShaking]);
 
   useEffect(() => {
-    if (gameState === "active" && timer > 0 && selectedOpt === null && !showViolationWarning && activeQuestions.length > 0) {
+    if (gameState === "active" && timer > 0 && selectedOpt === null && !showViolationWarning) {
       const exec = setInterval(() => {
         setTimer(t => { if(t <= 10) AudioEngine.tick(); return t - 1; });
         if (playMode === "solo") {
@@ -462,22 +235,22 @@ export default function NeuralArena() {
         }
       }, 1000);
       return () => clearInterval(exec);
-    } else if (timer === 0 && gameState === "active" && activeQuestions.length > 0) {
+    } else if (timer === 0 && gameState === "active") {
       pushLog("TIMED OUT. EXECUTING LIQUIDATION.");
-      AudioEngine.lose(); VoiceEngine.speak("Time has run out... like sand through my fingers. The game is over.", 0.6, 0.75); setIsShaking(true); setGameState("eliminated");
+      AudioEngine.lose(); VoiceEngine.speak("Aapka samay samapt hua. Afsoos, hume khed hai.", 1.0, 0.85); setIsShaking(true); setGameState("eliminated");
     }
-  }, [timer, gameState, selectedOpt, showViolationWarning, playMode, activeQuestions.length]);
+  }, [timer, gameState, selectedOpt, showViolationWarning, playMode]);
 
   useEffect(() => {
-    if (gameState !== "active" || playMode?.startsWith("duel")) return; // No strict tab monitoring in couch co-op
+    if (gameState !== "active" || playMode === "duel") return; // No strict tab monitoring in couch co-op
     const triggerViolation = () => {
       AudioEngine.violation(); pushLog(`DOM SENSOR TRIGGERED. BREACH DETECTED.`);
       setFocusHistory(prev => [...prev.slice(-19), Math.max(0, prev[prev.length-1] - 40)]);
       setViolationCount(prev => { 
         const n = prev + 1; 
-        if(n === 1) VoiceEngine.speak("Don't leave me here... stay in the window. The world is too big.", 0.65, 0.8);
-        if(n === 2) VoiceEngine.speak("This is the last warning. I don't want to lose you, but I will.", 0.6, 0.85);
-        if(n >= 3) { pushLog("CRITICAL BREACH. PURGING SANDBOX."); AudioEngine.lose(); VoiceEngine.speak("It's over now. The system architecture... it's falling apart.", 0.55, 0.7); setIsShaking(true); setGameState("eliminated"); } 
+        if(n === 1) VoiceEngine.speak("Kripaya dhyan dein. Apni window leave karna allowed nahi hai.", 1.2, 0.95);
+        if(n === 2) VoiceEngine.speak("Aakhiri chetavani. Cheating karne par game turant samapt kar diya jayega.", 1.1, 0.95);
+        if(n >= 3) { pushLog("CRITICAL BREACH. PURGING SANDBOX."); AudioEngine.lose(); VoiceEngine.speak("Niyam ullanghan! Aapka khel samapt kiya jata hai.", 1.1, 0.90); setIsShaking(true); setGameState("eliminated"); } 
         else setShowViolationWarning(true); 
         return n; 
       });
@@ -493,13 +266,13 @@ export default function NeuralArena() {
     return () => { document.removeEventListener("visibilitychange", hv); window.removeEventListener("blur", hw); document.removeEventListener("fullscreenchange", hf); };
   }, [gameState, playMode]);
 
-  const verifyProctoring = async (mode: "solo" | "duel_host" | "duel_race" | "interview") => {
+  const verifyProctoring = async (mode: "solo"|"duel") => {
     window.speechSynthesis.getVoices(); 
     setPlayMode(mode);
-    AudioEngine.init(); pushLog(`BOOTING ${mode.toUpperCase()} ARCHITECTURE...`);
-    try { await document.documentElement.requestFullscreen(); pushLog("SYSTEM FULLSCREEN ACQUIRED."); } catch (e) {}
+    AudioEngine.init(); pushLog(`BOOTING AUDIO CONTEXT IN ${mode.toUpperCase()} OVERRIDE...`);
+    try { await document.documentElement.requestFullscreen(); pushLog("FULLSCREEN ALLOCATED."); } catch (e) {}
     
-    if (mode === "solo" || mode === "interview") {
+    if (mode === "solo") {
       let telemetry: any = { cpu: navigator.hardwareConcurrency || "Unknown", ram: (navigator as any).deviceMemory || "Unknown", battery: "N/A", lat: "N/A", lon: "N/A" };
       try {
         if ((navigator as any).getBattery) {
@@ -520,22 +293,8 @@ export default function NeuralArena() {
       } catch(e) { pushLog("WEBRTC DENIED. SILENT DOM PROCTORING ENGAGED."); }
     }
 
-    const modeLines = {
-      solo: "Welcome... to the edge of the matrix. It's summer, and I'm your host. Select your fate.",
-      duel_host: "Host Arena. One of you is the star, the other is just a memory. Let's begin.",
-      duel_race: "The Speed Race. Fastest to the end... wins my heart. Be careful.",
-      interview: "Interview Arena. A cinematic trial of your skill. The careers of tomorrow... are built today."
-    };
-
-    VoiceEngine.speak(modeLines[mode], 0.85, 1.0);
-
-    if (mode === "interview") {
-      setAvailableDomains(["Front-end Engineering", "Back-end Systems", "AI & Machine Learning", "Full-stack Scale", "Cloud Architecture"]);
-      setGameState("onboarding"); 
-    } else {
-      setGameState("onboarding"); 
-    }
-    pushLog("STATUS: ONLINE.");
+    VoiceEngine.speak(mode === "duel" ? "Welcome to Offline Versus Mode. Two players. One Matrix. Chaliye khelte hain." : "Namaskaar. Web Three Neural matrix mein aapka swagat hai. Kripaya apne domains select karein.", 1.25, 0.95);
+    setGameState("onboarding"); pushLog("STATUS: ONLINE.");
   };
 
   const copyRefLink = () => {
@@ -572,47 +331,46 @@ export default function NeuralArena() {
       })));
     }
 
-    VoiceEngine.speak("The Neural Matrix is set! Chaliye khelte hain... Best of luck!", 0.85, 1.05);
-    // Small delay before the timer starts so first question renders cleanly
-    setTimeout(() => {
-      setGameState("active"); setLevel(0); setTimer(90); setWalletBalance("0.00 ETH"); setViolationCount(0); pushLog("SANDBOX LIVE.");
-      AudioEngine.startTension(60);
-    }, 800);
+    VoiceEngine.speak("Matrix configure ho chukka hai. Chaliye khelte hain, Web3 Play Along!", 1.3, 0.95);
+    setGameState("active"); setLevel(0); setTimer(60); setWalletBalance("0.00 ETH"); setViolationCount(0); pushLog(`SANDBOX LIVE IN ${selectedArena}`);
+    
+    // Broadcast Join Event with specific Arena ID
+    socketRef.current?.emit("join_match", `USER_0X${Math.random().toString(16).substr(2,6).toUpperCase()}`, selectedArena);
   };
 
-  const useLifeline = async (type: 'split' | 'cluster' | 'oracle') => {
-    if (!q || lifelines[type]) return;
-    setLifelines(prev => ({ ...prev, [type]: true }));
-    pushLog(`EXECUTING LIFELINE: ${type.toUpperCase()}`);
+  const useLifeline = async (type: "hint" | "expert") => {
+    if (!q || lifelines[type === "hint" ? "split" : "oracle"]) return;
+    pushLog(`REQUESTING ${type.toUpperCase()} FROM NEURAL_AI_NODE...`);
     
-    if (type === 'split') {
-      VoiceEngine.speak("Machine... erase the lies. Leave only the truth.", 0.7, 0.8);
-      const wrong = [0, 1, 2, 3].filter(i => i !== q.ans);
-      const toElim = wrong.sort(() => Math.random() - 0.5).slice(0, 2);
-      setEliminatedOpts(toElim);
-    } else if (type === 'oracle') {
-      VoiceEngine.speak("Let's ask the expert... they know the way through the fog.", 0.65, 0.85);
-      try {
-        const res = await axios.post('http://localhost:8000/api/ai/ask-expert', { questionText: q.q, options: q.options, correctAnswer: q.options[q.ans] });
+    try {
+      const aiBaseUrl = process.env.NEXT_PUBLIC_AI_SERVICE_URL || "";
+      const endpoint = type === "hint" ? `${aiBaseUrl}/api/ml/hint-generation` : `${aiBaseUrl}/api/ai/ask-expert`;
+      const res = await axios.post(endpoint, {
+        questionText: q.q,
+        options: q.options,
+        correctAnswer: q.options[q.ans],
+        domain: selectedDomains[0]
+      });
+
+      if (type === "hint") {
+        setEliminatedOpts(res.data.eliminated_indices);
+        setLifelines(p => ({ ...p, split: true }));
+        pushLog(`HINT RECV: ${res.data.method}`);
+      } else {
         setOracleLog(res.data.expert_advice);
-      } catch(e) {
-        setOracleLog(`Expert believes the answer is definitely Option ${String.fromCharCode(65 + q.ans)}`);
+        setLifelines(p => ({ ...p, oracle: true }));
+        pushLog(`EXPERT RECV: ${res.data.pipeline}`);
+        VoiceEngine.speak(res.data.expert_advice, 1.1, 0.95);
       }
-    } else if (type === 'cluster') {
-      VoiceEngine.speak("Listen to the crowd... their voices are a distant choir.", 0.6, 0.75);
-      const poll = [5, 5, 5, 5];
-      poll[q.ans] = 75;
-      poll[(q.ans + 1) % 4] += 15;
-      setShowPoll(poll);
-      setPollKey(k => k+1);
-      setOracleLog(`POLL: A:${poll[0]}% B:${poll[1]}% C:${poll[2]}% D:${poll[3]}%`);
+    } catch (e) {
+      pushLog("ERR: NEURAL_AI_NODE UNREACHABLE. FALLBACK ENGAGED.");
     }
   };
 
   const executeCryptographicCheck = (correct: boolean, nextLevel: number) => {
     setGameState("decrypting"); pushLog("BRUTE FORCING LEDGER HASHES...");
     AudioEngine.play(200, 'sawtooth', 2.0, 0.4);
-    if(playMode!=="duel_host" && playMode!=="duel_race") VoiceEngine.speak("Machine... lock it in. Reveal the hidden truth.", 0.6, 0.75);
+    if(playMode!=="duel") VoiceEngine.speak("Computer mahashay jawab ko lock kar rahe hain.", 1.1, 0.95);
     
     let cycles = 0;
     const interval = setInterval(() => {
@@ -624,48 +382,27 @@ export default function NeuralArena() {
         setGameState("active");
         
         if (correct) {
-          const newStreak = streak + 1;
-          setStreak(newStreak);
-          // Extra audio punch on streak milestones
-          if (newStreak >= 3) AudioEngine.play(900,'sine',0.2,0.15);
-          setScreenFlash('correct');
-          setTimeout(() => setScreenFlash(null), 600);
           AudioEngine.win();
-          if(playMode==="solo" || playMode==="interview") {
-            VoiceEngine.speak(`Absolutely brilliant. You've won ${PRIZE_LADDER[nextLevel - 1]}. But the stakes are getting incredibly high. Are you ready?`, 0.8, 1);
+          // Update Real-time Engine
+          socketRef.current?.emit("submit_answer", { userId: "LOCAL_USER", timeTaken: 60 - timer, scoreDelta: nextLevel * 100 });
+
+          if(playMode==="solo") {
+            VoiceEngine.speak(`Adbhut! Sahi jawaab! Aap jeet chuke hain ${PRIZE_LADDER[nextLevel - 1]}. Kya baat hai!`, 1.3, 0.95);
           }
           setWalletBalance(PRIZE_LADDER[nextLevel - 1]);
-          if (playMode === "interview") setInterviewXP(prev => prev + (nextLevel * 1000));
           pushLog(`MINTED HASH VAL: ${PRIZE_LADDER[nextLevel - 1]}`);
-          if(nextLevel === 5) {
-            setUnlockedAsset("🔓 Level 5 Smart Contract Minted");
-            setScreenFlash('milestone');
-            setMilestoneText("SAFE ZONE");
-            VoiceEngine.speak("You've cleared the first milestone. The safe zone is locked. You can breathe now... but only for a moment.", 0.8, 1);
-            setTimeout(() => { setScreenFlash(null); setMilestoneText(""); }, 2000);
-          }
-          if(nextLevel === 10) {
-            setUnlockedAsset("🔓 Level 10 Golden DAO NFT Minted");
-            setScreenFlash('milestone');
-            setMilestoneText("GOLDEN MILESTONE");
-            launchConfetti();
-            VoiceEngine.speak("The second milestone. Absolutely incredible performance. But the ultimate prize awaits you.", 0.85, 1);
-            setTimeout(() => { setScreenFlash(null); setMilestoneText(""); }, 2500);
-          }
+          if(nextLevel === 5) setUnlockedAsset("🔓 Level 5 Smart Contract Minted");
+          if(nextLevel === 10) setUnlockedAsset("🔓 Level 10 Golden DAO NFT Minted");
           setTimeout(() => setUnlockedAsset(""), 3000);
           if (nextLevel > PRIZE_LADDER.length - 1) { 
              pushLog("DAO FOUNDER ATTAINED."); 
-             launchConfetti();
-             VoiceEngine.speak(playMode?.startsWith("duel") ? "The race is over. One of you was simply faster." : "Unbelievable! You've done it! You are a Crorepati... the ultimate champion!", 0.9, 1); 
+             VoiceEngine.speak(playMode==="duel" ? "Duel Exhausted. Excellent Gameplay!" : "Shandaar khel! Aap bane hain Crore-pati! Bahut Bahut Badhaiyan!", 1.4, 0.95); 
              setGameState("victorious"); 
           }
-          else { setLevel(nextLevel); setTimer(60); setSelectedOpt(null); setIsCorrect(null); setEliminatedOpts([]); setOracleLog(""); setShowPoll(null); }
+          else { setLevel(nextLevel); setTimer(60); setSelectedOpt(null); setIsCorrect(null); setEliminatedOpts([]); setOracleLog(""); }
         } else {
-          setStreak(0);
-          setScreenFlash('wrong');
-          setTimeout(() => setScreenFlash(null), 500);
           pushLog("HASH REJECTED. FATAL ERROR SEVERITY LEVEL 9."); AudioEngine.lose(); 
-          if(playMode==="solo" || playMode==="interview") VoiceEngine.speak("Oh no. That is the wrong answer. You've lost. The game is over.", 0.7, 1); 
+          if(playMode==="solo") VoiceEngine.speak("Oh ho! Yeh galat jawaab hai. Bada afsos hua.", 1.0, 0.85); 
           setIsShaking(true); 
           if (playMode === "solo") setGameState("eliminated");
         }
@@ -674,230 +411,355 @@ export default function NeuralArena() {
   };
 
   const execOption = (i: number) => {
-    if (!q || selectedOpt !== null || pendingAnswer !== null || eliminatedOpts.includes(i) || playMode?.startsWith("duel")) return;
-    AudioEngine.hover();
-    setPendingAnswer(i); // triggers the 3-second countdown modal
+    if (!q || selectedOpt !== null || eliminatedOpts.includes(i) || playMode === "duel") return; // Mouse clicks disabled in duel mode!
+    AudioEngine.lock();
+    setSelectedOpt(i); pushLog(`VECTOR OPTION ${String.fromCharCode(65 + i)} COMMITTED.`);
+    setTimeout(() => {
+      const correct = i === q.ans;
+      setIsCorrect(correct);
+      setTimeout(() => executeCryptographicCheck(correct, level + 1), 1000);
+    }, 2000);
   };
 
   return (
-    <div className={`min-h-screen flex flex-col font-sans relative overflow-hidden transition-all duration-1000 bg-[#020210] ${isShaking ? 'animate-shake' : ''}`}>
-      
-      {/* Authentic KBC Studio Lighting Background */}
-      <div className="studio-rings" />
-      <div className="studio-spotlight" />
+    <div onMouseMove={handleMouseMove} className={`min-h-screen flex flex-col items-center justify-center bg-[#030305] text-white font-sans overflow-hidden select-none relative ${isShaking ? 'animate-shake' : ''}`}>
+      <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none mix-blend-screen opacity-100" />
+      <div className="absolute inset-0 bg-mesh-grid z-0 opacity-10 pointer-events-none"></div>
 
-      {/* Explosive Gold Flash & Confetti Layer */}
-      <canvas ref={confettiRef} className="fixed inset-0 z-[9998] pointer-events-none" />
-      {screenFlash && (
-        <div className={`fixed inset-0 z-[9997] pointer-events-none ${
-          screenFlash === 'correct' ? 'flash-gold' :
-          screenFlash === 'milestone' ? 'flash-gold bg-[rgba(255,215,0,0.4)]' :
-          'bg-black/80 backdrop-blur opacity-90'
-        }`} />
-      )}
-      
-      {/* ── Feature 6: "Lock Kiya Jaye?" Suspense Modal ── */}
+      <div className="absolute bottom-6 left-6 z-50 pointer-events-none opacity-60 flex flex-col justify-end w-96 h-40 overflow-hidden gap-1">
+        {hudLogs.map((log, idx) => (
+          <motion.span key={idx} initial={{opacity:0, x:-10}} animate={{opacity:1, x:0}} className={`font-mono text-[10px] tracking-widest ${log.includes("ERR") || log.includes("BREACH") || log.includes("REJECTED") ? 'text-red-500 font-bold' : 'text-neon-blue'}`}>{log}</motion.span>
+        ))}
+      </div>
+
       <AnimatePresence>
-        {pendingAnswer !== null && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#010115]/90 backdrop-blur-md">
+        {gameState !== 'lobby' && playMode === "solo" && (
+          <motion.div initial={{opacity: 0, x: 50}} animate={{opacity: 1, x: 0}} className="absolute top-6 right-6 z-40 w-64 glass-panel border border-red-500/30 rounded-xl overflow-hidden shadow-[0_0_20px_rgba(255,0,0,0.1)]">
+            <div className="bg-red-500/10 border-b border-red-500/30 px-3 py-1.5 flex items-center justify-between">
+              <span className="text-[9px] font-mono font-bold text-red-400 tracking-widest uppercase">Live Telemetry CCTV</span>
+              <div className="w-2 h-2 rounded-full bg-red-500 animate-ping"></div>
+            </div>
+            <div className="relative w-full h-36 bg-black flex items-center justify-center">
+               {!cameraActive && <span className="text-red-500/50 font-mono text-[10px] uppercase">No Video Feed / Blind DOM Overridden</span>}
+               <video ref={videoRef} autoPlay playsInline muted className={`absolute inset-0 w-full h-full object-cover filter contrast-[1.2] saturate-0 brightness-[1.1] opacity-70 ${isShaking ? 'animate-shake' : ''}`} style={{ mixBlendMode: 'screen' }} />
+               <div className="absolute inset-0 pointer-events-none bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEElEQVQIW2NkYGD4z8DAwMgAA0wAMxn8NvgAAAAASUVORK5CYII=')] opacity-30"></div>
+            </div>
+            <div className="bg-black/80 px-3 py-3 flex flex-col gap-1 text-[8px] font-mono text-gray-400">
+               <div className="flex justify-between"><span>CORES:</span> <span className="text-neon-blue">{hwData.cpu}</span></div>
+               <div className="flex justify-between"><span>CAPACITY:</span> <span className="text-neon-blue">{hwData.ram}GB</span></div>
+               <div className="flex justify-between"><span>BATTERY:</span> <span className={`${hwData.battery === 'N/A' || parseInt(hwData.battery) > 30 ? 'text-neon-blue' : 'text-red-500 animate-pulse'}`}>{hwData.battery}</span></div>
+               <div className="flex justify-between"><span>COORD:</span> <span className="text-gold-400">{hwData.lat}, {hwData.lon}</span></div>
+            </div>
+            <div className="h-16 w-full bg-red-900/5 mt-1 border-t border-red-500/20 relative flex items-end overflow-hidden p-1">
+              <span className="absolute top-1 left-2 text-[8px] font-mono text-white/40">AI FOCUS TELEMETRY // LANGCHAIN CO-PROMPT</span>
+              <svg viewBox="0 0 100 20" className="w-full h-full preserve-aspect-none pt-4" style={{ overflow: 'visible' }}>
+                  <polyline fill="none" stroke="rgba(0, 240, 255, 0.8)" strokeWidth="1.5" points={focusHistory.map((val, i) => `${(i / (Math.max(1, focusHistory.length - 1))) * 100},${20 - (val / 100 * 20)}`).join(' ')} style={{ filter: 'drop-shadow(0px 0px 4px rgba(0,240,255,0.5))' }} />
+                  <path fill="rgba(0, 240, 255, 0.1)" d={`M0,20 ${focusHistory.map((val, i) => `L${(i / (Math.max(1, focusHistory.length - 1))) * 100},${20 - (val / 100 * 20)}`).join(' ')} L100,20 Z`} />
+              </svg>
+            </div>
             
-            <motion.div initial={{ scale: 1.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", bounce: 0.6 }} className="kbc-lozenge-wrapper max-w-4xl w-full p-2 animate-pulse mb-10 shadow-[0_0_80px_rgba(249,115,22,0.8)]">
-               <div className="kbc-lozenge-inner py-16 flex flex-col items-center bg-orange-600 text-center">
-                  <p className="text-white font-black tracking-widest text-3xl uppercase mb-6 drop-shadow-md border-b border-white/30 pb-4 px-10">LOCK KIYA JAYE?</p>
-                  
-                  <p className="text-5xl font-medium text-white tracking-widest mb-4">
-                    <span className="text-yellow-300 font-serif font-black mr-6">{['A','B','C','D'][pendingAnswer]}:</span>
-                    <span className="font-sans">{q?.options[pendingAnswer]}</span>
-                  </p>
-               </div>
-            </motion.div>
-
-            <div className="flex gap-4 justify-center items-center">
-              <motion.div key={finalCountdown} initial={{ scale: 3, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring" }} className="text-[8rem] leading-none font-black font-mono text-orange-400 drop-shadow-[0_0_30px_rgba(249,115,22,1)] mr-16">{finalCountdown}</motion.div>
-              
-              <div className="flex flex-col gap-6">
-                 <button onClick={() => {
-                      const idx = pendingAnswer;
-                      setPendingAnswer(null);
-                      AudioEngine.lock();
-                      setSelectedOpt(idx);
-                      pushLog(`VECTOR OPTION ${String.fromCharCode(65 + idx)} LOCKED.`);
-                      const correct = idx === q?.ans;
-                      const elapsed = (Date.now() - questionStartTime) / 1000;
-                      setConfidenceScore(Math.max(5, Math.round(100 - (elapsed / 60) * 90)));
-                      setIsCorrect(correct);
-                      setTimeout(() => executeCryptographicCheck(correct, level + 1), 2500); // KBC Dramatic Pauses
-                    }} className="px-16 py-6 bg-gradient-to-b from-yellow-400 to-yellow-600 text-black rounded-full font-black tracking-widest uppercase text-xl transition-all shadow-[0_0_40px_rgba(255,215,0,0.8)] border border-yellow-200">Yes, Lock It</button>
-                 <button onClick={() => setPendingAnswer(null)} className="px-16 py-4 rounded-full text-white border border-white/30 hover:bg-white/10 transition-all font-bold tracking-widest uppercase text-sm">Cancel</button>
-              </div>
+            {/* Real-time Analytics Small Preview */}
+            <div className="bg-black/60 px-3 py-2 border-t border-white/10 flex flex-col gap-1">
+                <div className="flex justify-between text-[7px] font-mono uppercase">
+                  <span className="text-gray-500">Avg Latency</span>
+                  <span className="text-neon-blue">{realtimeAnalytics.avgLatency.toFixed(2)}ms</span>
+                </div>
+                <div className="flex justify-between text-[7px] font-mono uppercase">
+                  <span className="text-gray-500">Cluster Nodes</span>
+                  <span className="text-neon-blue">{realtimeAnalytics.activeNodes}</span>
+                </div>
+                <button onClick={() => setShowAnalytics(true)} className="mt-1 w-full py-1 bg-neon-blue/20 text-[6px] font-bold tracking-widest text-neon-blue uppercase border border-neon-blue/40 rounded-sm hover:bg-neon-blue hover:text-black transition-all">Open Spark Dashboard</button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <motion.div className="relative z-10 w-full h-full flex flex-col items-center justify-center">
-        
-        {/* LOBBY / ONBOARDING */}
-        {(gameState === "lobby" || gameState === "onboarding") && (
-          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, type: "spring" }} className="z-10 flex flex-col items-center max-w-7xl text-center relative w-full px-6 py-20">
-            
-            <div className="w-[300px] h-[300px] rounded-full border-[10px] border-[#01011A] shadow-[0_0_50px_rgba(0,100,255,0.8)] flex items-center justify-center mb-10 relative overflow-hidden bg-[radial-gradient(ellipse_at_center,rgba(50,100,255,0.4)_0%,transparent_70%)]">
-               <div className="absolute inset-0 border-4 border-yellow-500 rounded-full scale-[0.8] animate-[spin_10s_linear_infinite] border-dashed opacity-50" />
-               <h1 className="text-5xl md:text-7xl font-sans font-black tracking-tighter text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.8)] bg-gradient-to-b from-yellow-300 to-yellow-600 text-transparent bg-clip-text">NEURAL KBC</h1>
-            </div>
-
-            {gameState === "lobby" ? (
-               <>
-                 <p className="text-xl text-yellow-500 tracking-[0.5em] font-serif uppercase mb-16 relative z-10 font-bold drop-shadow-[0_0_10px_rgba(255,215,0,0.5)]">Who Wants To Play</p>
-                 <ModeSelector onSelect={verifyProctoring} />
-               </>
-            ) : (
-               <div className="w-full max-w-4xl text-center pb-20">
-                 <h2 className="text-4xl font-black tracking-widest text-white mb-4 drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]">SELECT YOUR DOMAINS</h2>
-                 <p className="text-yellow-500 mb-14 text-sm font-bold uppercase tracking-[0.4em]">Choose 3 technical subjects to begin</p>
-                 
-                 <div className="flex flex-wrap justify-center gap-6 mb-16">
-                   {availableDomains.map(domain => {
-                     const selected = selectedDomains.includes(domain);
-                     return ( <button key={domain} onClick={() => toggleDomain(domain)} className={`px-8 py-5 rounded-full font-bold tracking-widest transition-all text-sm border-2 ${selected ? 'bg-gradient-to-b from-yellow-400 to-yellow-600 text-black border-yellow-300 shadow-[0_0_30px_rgba(255,215,0,0.8)] scale-110' : 'bg-[#05051a] text-white border-white/20 hover:border-yellow-500 hover:shadow-[0_0_20px_rgba(255,215,0,0.3)]'}`}> {domain} </button> )
-                   })}
-                 </div>
-                 
-                 <button onClick={constructGenerativeMatrix} disabled={selectedDomains.length !== 3} className={`px-16 py-6 rounded-full font-black tracking-[0.3em] text-xl uppercase transition-all ${selectedDomains.length === 3 ? 'bg-white text-black shadow-[0_0_50px_rgba(255,255,255,0.8)] hover:scale-105 border-4 border-[#01011A]' : 'bg-[#05051a] text-zinc-600 cursor-not-allowed border-2 border-white/5'}`}>
-                   Let's Play
-                 </button>
-               </div>
-            )}
-          </motion.div>
-        )}
-
-        {/* LOADING LLM (KBC TENSION) */}
-        {gameState === "loading_llm" && (
-          <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="z-10 flex flex-col items-center">
-            <div className="w-32 h-32 border-[6px] border-yellow-500/20 border-t-yellow-500 rounded-full animate-[spin_3s_cubic-bezier(0.5,0,0.5,1)_infinite] mb-12 shadow-[0_0_80px_rgba(255,215,0,0.4)] relative">
-               <div className="absolute inset-4 border-[4px] border-blue-500/30 border-b-blue-400 rounded-full animate-[spin_2s_linear_infinite_reverse]" />
-            </div>
-            <p className="text-yellow-500 text-2xl font-sans tracking-[0.4em] font-black uppercase animate-pulse">Generating Questions...</p>
-          </motion.div>
-        )}
-
-        {/* DECRYPTING HASH (KBC COMMERCIAL BREAK SUSPENSE) */}
-        {gameState === "decrypting" && (
-          <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 flex items-center justify-center bg-[#010115]/90 backdrop-blur-md">
-            <div className="flex flex-col items-center">
-              <div className="w-48 h-48 border-8 border-dashed border-red-600 rounded-full animate-[spin_4s_linear_infinite] flex items-center justify-center mb-12 relative shadow-[0_0_80px_rgba(220,38,38,0.5)]">
-                <div className="absolute inset-0 bg-red-600/20 rounded-full animate-ping"></div>
-              </div>
-              <p className="text-red-500 text-3xl font-black tracking-[0.5em] uppercase mb-8 drop-shadow-[0_0_20px_rgba(220,38,38,0.8)]">VERIFYING</p>
-            </div>
-          </motion.div>
-        )}
-
-        {/* ENDGAME STATES */}
-         {["eliminated", "victorious", "extracted"].includes(gameState) && (
-          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", bounce: 0.6 }} className="z-10 bg-[#05051a] border-[4px] border-yellow-500 p-24 rounded-[3rem] max-w-5xl w-full text-center relative overflow-hidden flex flex-col items-center shadow-[0_0_150px_rgba(255,215,0,0.5)]">
-            <h1 className={`text-6xl md:text-[5.5rem] leading-tight font-black mb-10 tracking-tighter relative z-10 ${gameState==='eliminated'? 'text-white' : 'text-yellow-400 text-glow-gold'}`}>
-              {playMode?.startsWith("duel") ? (p1Progress > p2Progress || p1Score > p2Score ? "PLAYER 1 WINS" : "PLAYER 2 WINS") : gameState === 'eliminated' ? 'GAME OVER' : 'YOU ARE A MILLIONAIRE'}
-            </h1>
-            
-            <div className="my-10 w-full kbc-lozenge-wrapper p-2 animate-pulse shadow-[0_0_50px_rgba(255,215,0,0.6)]">
-               <div className="kbc-lozenge-inner py-16 bg-[#010115] flex flex-col items-center justify-center">
-                 <p className="text-xl text-yellow-500 font-bold uppercase tracking-[0.5em] mb-6">{playMode === 'interview' ? 'Final Career XP' : 'You go home with'}</p>
-                 <p className="text-[6rem] font-sans font-black text-white tracking-widest drop-shadow-[0_0_30px_rgba(255,255,255,0.8)]">{playMode === 'interview' ? `${interviewXP} XP` : walletBalance}</p>
-               </div>
-            </div>
-
-            <button onClick={() => window.location.reload()} className="mt-8 px-16 py-6 rounded-full bg-gradient-to-b from-yellow-300 to-yellow-600 text-black font-black tracking-[0.3em] text-xl uppercase hover:scale-110 transition-transform shadow-[0_0_60px_rgba(255,215,0,0.8)] border-2 border-white">Play Again</button>
-          </motion.div>
-        )}
-
-        {/* ACTIVE GAME (KBC TV SET LAYOUT) */}
-        {q && gameState === "active" && (
-          <div className="z-10 flex flex-col w-full h-full max-w-[1600px] mx-auto px-8 relative pt-20">
-            
-            {/* Top HUD: Logo, Timer & Lifelines */}
-            <header className="flex justify-between items-center w-full px-12 z-50">
-               {/* Left: Current Level Box */}
-               <div className="flex flex-col items-start bg-[#05051a] border border-white/20 p-6 rounded-2xl shadow-[0_0_30px_rgba(0,100,255,0.2)]">
-                  <span className="text-yellow-500 tracking-[0.4em] text-xs uppercase font-black mb-2">Question</span>
-                  <span className="font-mono text-white tracking-widest text-4xl font-bold">{String(level+1)}<span className="text-zinc-600 text-xl font-light">/16</span></span>
-               </div>
-
-               {/* Center: The KBC Massive Circular Clock */}
-               <div className={`relative flex items-center justify-center transform scale-[1.3] ${timer <= 15 ? 'heartbeat-rapid' : ''}`}>
-                  <div className="absolute inset-0 bg-blue-900/40 rounded-full blur-xl animate-pulse"></div>
-                  <svg width="180" height="180" className="absolute" style={{ transform: 'rotate(-90deg)' }}>
-                    <circle cx="90" cy="90" r="82" stroke="rgba(255,255,255,0.1)" strokeWidth="8" fill="#01011A" />
-                    {/* Ring notches tracking time */}
-                    <circle cx="90" cy="90" r="82" stroke={timer <= 10 ? '#dc2626' : timer <= 30 ? '#eab308' : '#3b82f6'} strokeWidth="8" fill="none" strokeLinecap="round" strokeDasharray={`${2 * Math.PI * 82}`} strokeDashoffset={`${2 * Math.PI * 82 * (1 - timer / 90)}`} className="transition-all duration-1000 ease-linear shadow-[0_0_20px_rgba(0,100,255,0.8)]" />
-                  </svg>
-                  <span className={`text-[4.5rem] font-black font-sans tracking-tighter relative z-10 ${
-                    timer <= 10 ? 'text-red-500 drop-shadow-[0_0_20px_rgba(220,38,38,1)]' : timer <= 30 ? 'text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,1)]' : 'text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.6)]'
-                  }`}>{timer.toString().padStart(2,'0')}</span>
-               </div>
-
-               {/* Right: Lifelines */}
-               <div className="flex gap-4 isolate scale-110">
-                  <LifelinePanel lifelines={lifelines} onUse={useLifeline} disabled={selectedOpt !== null} />
-               </div>
-            </header>
-
-            <div className="flex-1 flex w-full relative z-10 mt-12 pb-12">
+      {/* Analytics Modal (The Revolutionary Dashboard) */}
+      <AnimatePresence>
+        {showAnalytics && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-10">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="w-full max-w-6xl h-full max-h-[80vh] glass-panel p-10 rounded-[3rem] border border-white/20 overflow-y-auto relative bg-[#050508]">
+              <button onClick={() => setShowAnalytics(false)} className="absolute top-8 right-8 text-white/40 hover:text-white transition-all text-2xl font-light font-mono">CLOSE_X</button>
               
-              {/* Left Column: Authentic Money Tree */}
-              {(playMode === "solo" || playMode === "interview") && (
-                 <div className="hidden lg:flex w-[320px] pl-4 justify-start shrink-0">
-                    <MoneyLadder currentLevel={level} prizeLadder={PRIZE_LADDER} mode={playMode} />
-                 </div>
-              )}
+              <div className="flex flex-col gap-8 h-full">
+                <header className="flex justify-between items-end border-b border-white/10 pb-6">
+                  <div>
+                    <h2 className="text-5xl font-black tracking-tighter text-neon-blue mb-1">NEURAL_DASHBOARD v3.0</h2>
+                    <p className="text-gray-500 font-mono text-xs uppercase tracking-widest italic">Simulating Apache Spark 3.5.x Live Stream Aggregation</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="block text-[10px] text-gray-500 font-mono">STATUS</span>
+                    <span className="text-green-500 font-mono font-bold tracking-widest">CLUSTER_ONLINE_SHARD_0X12</span>
+                  </div>
+                </header>
 
-              {/* Center: The KBC Question Plate */}
-              <div className="flex-1 flex flex-col items-center justify-end w-full px-4 md:px-12 mt-12 lg:mt-0">
-                <AnimatePresence mode="wait">
-                  <motion.div key={`block-${level}`} initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", bounce: 0.3 }} className="w-full flex flex-col items-center max-w-[1100px] gap-8">
-                    
-                    {/* Audience Poll Graph (Feature 5) */}
-                    {showPoll && (
-                      <motion.div initial={{opacity:0, scale:0.5, y: 100}} animate={{opacity:1, scale:1, y: -20}} transition={{ type: "spring", stiffness: 200 }} className="absolute bottom-[400px] z-[200] p-10 bg-[#01011A] border-4 border-yellow-500 rounded-[3rem] w-[500px] flex items-end justify-between h-[300px] shadow-[0_0_80px_rgba(255,215,0,0.4)]">
-                        {['A','B','C','D'].map((ltr, i) => (
-                          <div key={ltr} className="flex flex-col items-center flex-1 gap-4 h-full justify-end">
-                            <span className="text-xl text-yellow-400 font-sans font-black drop-shadow-md">{showPoll[i]}%</span>
-                            <div className="w-16 bg-[#0a1236] rounded-t-lg relative overflow-hidden transition-all duration-[2000ms] shadow-inner" style={{height:`${showPoll[i]}%`, minHeight:'20px'}}>
-                              <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-yellow-600 to-yellow-300 shadow-[0_0_20px_rgba(255,215,0,0.8)]" style={{height:'100%'} as any} />
-                            </div>
-                            <span className="text-2xl font-black text-white">{ltr}</span>
-                          </div>
-                        ))}
-                      </motion.div>
-                    )}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                   <div className="glass-panel p-6 rounded-2xl border border-white/5 bg-white/5">
+                      <span className="text-[10px] font-mono text-gray-500 block mb-2 uppercase">Mean Latency</span>
+                      <span className="text-4xl font-mono text-white">{realtimeAnalytics.avgLatency.toFixed(2)}<small className="text-xs ml-1 opacity-40">MS</small></span>
+                   </div>
+                   <div className="glass-panel p-6 rounded-2xl border border-white/5 bg-white/5">
+                      <span className="text-[10px] font-mono text-gray-500 block mb-2 uppercase">Event Throughput</span>
+                      <span className="text-4xl font-mono text-white">{realtimeAnalytics.throughput}</span>
+                   </div>
+                   <div className="glass-panel p-6 rounded-2xl border border-white/5 bg-white/5">
+                      <span className="text-[10px] font-mono text-gray-500 block mb-2 uppercase">Active Neural Links</span>
+                      <span className="text-4xl font-mono text-white">{realtimeAnalytics.activeNodes}</span>
+                   </div>
+                </div>
 
-                    {/* Question Box - Authentic KBC Strip */}
-                    <div className="w-full kbc-lozenge-wrapper p-[2px] shadow-[0_0_40px_rgba(0,100,255,0.4)] relative">
-                       <div className="kbc-lozenge-inner py-10 px-12 md:px-20 min-h-[140px] flex items-center justify-center text-center">
-                          <h2 className="text-xl md:text-[2.2rem] font-medium leading-[1.4] text-white tracking-wide">
-                            {displayedQuestion}<span className="animate-pulse text-yellow-500 font-bold ml-1">_</span>
-                          </h2>
-                       </div>
-                    </div>
-
-                    {/* Options Grid */}
-                    <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12 relative z-20 mt-4">
-                      {q.options.map((opt: string, i: number) => (
-                         <div key={`opt-${level}-${i}`} className="w-full relative px-2">
-                           <OptionCard index={i} text={opt} selected={selectedOpt === i} correct={selectedOpt === i ? isCorrect : (isCorrect === false && i === q.ans ? true : null)} eliminated={eliminatedOpts.includes(i)} onClick={() => execOption(i)} playMode={playMode} />
-                         </div>
+                <div className="flex-1 glass-panel rounded-3xl border border-white/5 bg-black/40 overflow-hidden relative p-8">
+                  <span className="text-[10px] font-mono text-gray-500 mb-4 block uppercase tracking-widest">Global Difficulty Drift Matrix (XGBoost Analysis)</span>
+                  <div className="w-full h-full flex items-center justify-center opacity-30">
+                    {/* Visualizing "Big Data" with multiple bars */}
+                    <div className="flex items-end gap-2 h-40">
+                      {Array.from({length: 30}).map((_, i) => (
+                        <motion.div key={i} initial={{ height: 0 }} animate={{ height: `${Math.random() * 100}%` }} transition={{ repeat: Infinity, duration: 1.5 + Math.random(), repeatType: 'reverse' }} className="w-4 bg-neon-blue/40 rounded-t-sm" />
                       ))}
                     </div>
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <p className="text-xl font-mono text-white/60 text-center max-w-lg leading-relaxed uppercase tracking-tighter">
+                      Processing 10k+ events/sec across distributed shards. <br/>
+                      <span className="text-neon-blue">Neural-KBC v3 is actively calibrating its money ladder using live behavioral heuristics.</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-                  </motion.div>
-                </AnimatePresence>
+      <motion.div animate={{ rotateX: mousePos.y, rotateY: mousePos.x }} transition={{ type: "spring", stiffness: 100, damping: 30 }} style={{ transformStyle: 'preserve-3d' }} className="relative z-10 w-full h-full flex flex-col items-center justify-center">
+        {gameState === "lobby" && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="z-10 flex flex-col items-center max-w-7xl w-full px-6">
+            
+            {/* Premium Hero Section */}
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.8 }} className="flex flex-col items-center glass-panel p-16 rounded-[3.5rem] w-full text-center border-t border-l border-white/20 shadow-[-20px_20px_60px_rgba(0,0,0,0.8)] relative overflow-hidden mb-12">
+              <div className="absolute -top-24 -right-24 w-96 h-96 bg-neon-blue/10 rounded-full blur-[120px] animate-pulse"></div>
+              <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-neon-purple/10 rounded-full blur-[120px] animate-pulse"></div>
+              
+              <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="px-4 py-1 rounded-full border border-neon-blue/30 bg-neon-blue/5 mb-8">
+                <span className="text-[10px] font-mono text-neon-blue tracking-[0.4em] uppercase font-bold">Protocol v3.0 // Neural Genesis Alpha</span>
+              </motion.div>
+
+              <h1 className="text-7xl md:text-[9rem] font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-neon-purple to-neon-blue mb-6 leading-none" style={{ transform: 'translateZ(60px)' }}>NEURAL KBC</h1>
+              
+              <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 mb-10 opacity-60">
+                 {["LANGCHAIN RAG", "XGBOOST CORE", "SPARK ANALYTICS", "SOCKET.IO SHARDS", "MDP RISK MATRIX"].map(tech => (
+                   <span key={tech} className="text-[9px] font-mono text-white tracking-[0.2em]">{tech}</span>
+                 ))}
               </div>
 
+              <p className="text-xl text-gray-300 max-w-3xl leading-relaxed mb-12 font-light tracking-wide" style={{ transform: 'translateZ(20px)' }}>
+                The world's first **Distributed Neural Intelligence Engine** for real-time competitive cognitive assessment. Architected with polyglot microservices and sharded real-time ledgers.
+              </p>
+              
+              <div className="flex gap-6 w-full justify-center mb-4" style={{ transform: 'translateZ(40px)' }}>
+                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => verifyProctoring('solo')} className="flex-1 max-w-sm py-6 bg-white text-black rounded-3xl font-black tracking-[0.2em] uppercase text-sm shadow-[0_0_50px_rgba(255,255,255,0.4)] hover:shadow-[0_0_70px_rgba(255,255,255,0.6)] transition-all">
+                   Initiate Solo Ops
+                </motion.button>
+                
+                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => verifyProctoring('duel')} className="flex-1 max-w-sm py-6 bg-transparent border border-white/20 text-white rounded-3xl font-black tracking-[0.2em] uppercase text-sm hover:bg-white hover:text-black transition-all">
+                   Versus Duel
+                </motion.button>
+              </div>
+            </motion.div>
+            
+            {/* System Status / Trust Bar */}
+            <div className="w-full flex justify-between items-center px-10 py-6 glass-panel rounded-3xl border border-white/5 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-700">
+               <div className="flex flex-col">
+                  <span className="text-[8px] font-mono text-gray-500 uppercase mb-1">Architecture</span>
+                  <span className="text-[10px] font-bold text-white tracking-widest">POLYGLOT_SHARDED</span>
+               </div>
+               <div className="flex flex-col">
+                  <span className="text-[8px] font-mono text-gray-500 uppercase mb-1">Inference Latency</span>
+                  <span className="text-[10px] font-bold text-neon-blue tracking-widest">~42MS</span>
+               </div>
+               <div className="flex flex-col">
+                  <span className="text-[8px] font-mono text-gray-500 uppercase mb-1">Uptime</span>
+                  <span className="text-[10px] font-bold text-green-500 tracking-widest">99.998%</span>
+               </div>
+               <div className="flex flex-col">
+                  <span className="text-[8px] font-mono text-gray-500 uppercase mb-1">Ledger Type</span>
+                  <span className="text-[10px] font-bold text-gold-400 tracking-widest">ACID_COMPLIANT</span>
+               </div>
+            </div>
+
+            {/* Growth Hook: Referral System */}
+            <div className="w-full mt-10 glass-panel border border-dashed border-neon-blue/50 p-6 rounded-2xl flex items-center justify-between" style={{ transform: 'translateZ(30px)' }}>
+              <div className="flex flex-col text-left">
+                <span className="text-neon-blue font-black tracking-widest text-sm mb-1 uppercase">Activate 5x Native Yield</span>
+                <span className="text-gray-400 font-mono text-xs">Invite 3 peers to the network to multiply your ETH withdrawals automatically.</span>
+              </div>
+              <button onClick={copyRefLink} className="px-6 py-3 bg-neon-blue/20 hover:bg-neon-blue border border-neon-blue text-white rounded-xl font-bold tracking-widest text-xs uppercase transition-all duration-300">
+                {referralCopied ? 'Link Copied!' : 'Copy Matrix Invite'}
+              </button>
+            </div>
+
+            <div className="mt-12 w-full max-w-lg">
+               <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest block mb-4">Select Target Arena (Multi-tenant Shard)</span>
+               <div className="flex gap-4">
+                  {["GLOBAL_MAIN", "ASIA_CENTRAL_1", "US_EAST_PROD"].map(arena => (
+                    <button key={arena} onClick={() => { setSelectedArena(arena); pushLog(`TARGETING SHARD: ${arena}`); }} className={`flex-1 py-3 rounded-xl font-mono text-[10px] border transition-all ${selectedArena === arena ? 'bg-neon-blue/20 border-neon-blue text-neon-blue shadow-[0_0_15px_rgba(0,240,255,0.3)]' : 'bg-black border-white/10 text-gray-500 hover:border-white/30'}`}>{arena}</button>
+                  ))}
+               </div>
+            </div>
+          </motion.div>
+        )}
+
+        {gameState === "onboarding" && (
+          <motion.div initial="hidden" animate="visible" variants={containerVariants} className="z-10 glass-panel p-12 rounded-[2.5rem] max-w-5xl w-full text-center mx-4 relative overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+            <motion.h2 variants={itemVariants} className="text-5xl font-black glow-text-blue tracking-tight mb-2 relative z-10">Neural Matrix Configuration</motion.h2>
+            <motion.p variants={itemVariants} className="text-gray-400 mb-12 text-xl font-light relative z-10">Select exactly 3 deep-tech vectors for the LLM to process.</motion.p>
+            
+            <motion.div variants={containerVariants} className="flex flex-wrap justify-center gap-4 mb-12 relative z-10">
+              {availableDomains.map(domain => {
+                const selected = selectedDomains.includes(domain);
+                const isHacked = domain.includes("OmniGuard");
+                return ( <motion.button variants={itemVariants} whileHover={{ scale: 1.05, y: -5 }} whileTap={{ scale: 0.95 }} key={domain} onClick={() => toggleDomain(domain)} onMouseEnter={() => AudioEngine.hover()} className={`px-6 py-4 rounded-2xl font-bold tracking-wide transition-all duration-300 ${selected ? 'bg-gradient-to-br from-neon-purple/80 to-neon-blue/80 border border-white/40 text-white shadow-[0_10px_30px_rgba(138,43,226,0.5)]' : `bg-black/50 border border-white/10 ${isHacked ? 'text-red-500 border-red-500/50 glow-text-red' : 'text-gray-400'} hover:border-white/30 backdrop-blur-md`}`}> {domain} </motion.button> )
+              })}
+            </motion.div>
+            
+            <motion.button variants={itemVariants} onClick={constructGenerativeMatrix} disabled={selectedDomains.length !== 3} className={`px-14 py-5 rounded-full font-black tracking-[0.2em] uppercase transition-all ${selectedDomains.length === 3 ? 'bg-white text-black shadow-[0_0_50px_rgba(255,255,255,0.8)] hover:scale-105' : 'bg-white/10 text-white/30 cursor-not-allowed'}`}>
+              Trigger Async Generator
+            </motion.button>
+          </motion.div>
+        )}
+
+        {gameState === "loading_llm" && (
+          <div className="z-10 flex flex-col items-center">
+            <div className="w-32 h-32 border-[6px] border-white/10 border-t-neon-blue rounded-full animate-spin mb-10 shadow-[0_0_50px_rgba(0,240,255,0.3)] text-center flex items-center justify-center font-mono font-black text-neon-blue">AI</div>
+            <p className="text-2xl animate-pulse glow-text-blue text-center font-mono font-light tracking-wide">
+              [SYSTEM_LINK]: Synthesizing infinite permutations...
+            </p>
+          </div>
+        )}
+
+        {gameState === "decrypting" && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-3xl">
+            <div className="flex flex-col items-center">
+              <div className="w-80 h-80 border-4 border-dashed border-red-500 rounded-full animate-[spin_2s_linear_infinite] flex items-center justify-center mb-8 relative">
+                <div className="absolute inset-0 bg-red-500/20 rounded-full animate-pulse"></div>
+                <div className="absolute inset-0 border-8 border-t-red-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-[spin_1s_linear_infinite_reverse]"></div>
+                <span className="text-5xl text-white font-black font-mono">HASH</span>
+              </div>
+              <h2 className="text-4xl font-mono text-gray-400 mb-2 glitch-hover cursor-pointer">VERIFYING BLOCKCHAIN LEDGER</h2>
+              <p className="text-[5rem] font-mono font-black text-red-500 drop-shadow-[0_0_30px_red] tracking-widest">{decryptionHash}</p>
+            </div>
+          </div>
+        )}
+
+        {["eliminated", "victorious", "extracted"].includes(gameState) && (
+          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="z-10 glass-panel p-20 rounded-[3rem] border border-red-500/30 max-w-4xl w-full text-center shadow-[0_0_100px_rgba(255,0,0,0.15)] relative overflow-hidden flex flex-col items-center">
+            <div className={`absolute top-0 left-0 w-full h-full ${gameState==='eliminated'? 'bg-red-500/10' : 'bg-gold-500/10'}`}></div>
+            <h1 style={{ transform: 'translateZ(30px)' }} className={`text-6xl md:text-7xl font-black mb-6 tracking-tighter relative z-10 ${gameState==='eliminated' ? 'text-red-500 glow-text-red glitch-hover' : 'text-gold-400 glow-text-gold drop-shadow-[0_0_20px_rgba(212,160,23,0.8)]'}`}>
+              {playMode === "duel" ? "MATCH CONCLUDED" : gameState === 'eliminated' ? 'SYSTEM LIQUIDATION' : 'PROTOCOL CLEAR'}
+            </h1>
+            
+            {playMode === "duel" ? (
+               <div className="flex w-full gap-8 relative z-10 mb-16 justify-center" style={{ transform: 'translateZ(40px)' }}>
+                 <div className="glass-panel p-8 rounded-3xl border border-neon-purple/50 bg-neon-purple/10 flex flex-col items-center w-64">
+                    <span className="text-neon-purple font-black tracking-widest mb-2">PLAYER 1</span>
+                    <span className="text-6xl font-mono text-white glow-text-blue">{p1Score}</span>
+                 </div>
+                 <div className="flex flex-col justify-center font-black text-4xl text-gray-600 px-4">VS</div>
+                 <div className="glass-panel p-8 rounded-3xl border border-gold-500/50 bg-gold-500/10 flex flex-col items-center w-64">
+                    <span className="text-gold-400 font-black tracking-widest mb-2">PLAYER 2</span>
+                    <span className="text-6xl font-mono text-white glow-text-gold">{p2Score}</span>
+                 </div>
+               </div>
+            ) : (
+               <>
+                 <p className="text-2xl text-gray-400 font-light mb-2 relative z-10 uppercase tracking-widest">Final Ledger Balance</p>
+                 <p style={{ transform: 'translateZ(40px)' }} className="text-7xl font-mono text-white mb-16 glow-text-blue relative z-10 drop-shadow-[0_0_10px_rgba(0,240,255,0.8)]">{walletBalance}</p>
+               </>
+            )}
+
+            <button onClick={() => window.location.reload()} onMouseEnter={()=>AudioEngine.hover()} className="px-10 py-5 border border-white/20 rounded-full text-white font-bold tracking-[0.2em] text-sm uppercase hover:bg-white hover:text-black transition-all relative z-10 shadow-[0_0_30px_rgba(255,255,255,0.2)]">Return to Main Sector</button>
+          </motion.div>
+        )}
+
+        {q && gameState === "active" && (
+          <div className="z-10 flex flex-col w-full h-full max-w-[1400px] mx-auto px-6 py-8 relative">
+            
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-4 pb-6 relative">
+              <div className="flex gap-3">
+                <div className="glass-panel px-6 py-3 rounded-full flex items-center gap-4 border border-neon-blue/30 bg-neon-blue/5 shadow-[0_0_30px_rgba(0,240,255,0.15)] backdrop-blur-md">
+                  <span className="text-neon-blue font-black tracking-[0.2em] text-sm">SECURE LEDGER:</span>
+                  <span className="font-mono text-white text-xl font-bold drop-shadow-[0_0_8px_white]">{walletBalance}</span>
+                </div>
+              </div>
+
+              {playMode === "duel" && (
+                <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-8 glass-panel px-8 py-2 rounded-full border border-white/20">
+                    <span className="font-mono font-black text-2xl text-neon-purple w-8 text-right">{p1Score}</span>
+                    <span className="text-xs text-gray-500 font-black tracking-[0.3em]">SCORE</span>
+                    <span className="font-mono font-black text-2xl text-gold-400 w-8 text-left">{p2Score}</span>
+                </div>
+              )}
+
+              {playMode === "solo" && (
+                <div className="flex gap-3">
+                  <button onClick={() => useLifeline('hint')} disabled={lifelines.split} className={`px-6 py-3 border rounded-2xl text-[10px] font-black tracking-widest uppercase transition-all ${lifelines.split ? 'border-gray-800 text-gray-700' : 'border-neon-blue/50 bg-neon-blue/10 text-neon-blue'}`}>50:50</button>
+                  <button onClick={() => useLifeline('expert')} disabled={lifelines.oracle} className={`px-6 py-3 border rounded-2xl text-[10px] font-black tracking-widest uppercase transition-all ${lifelines.oracle ? 'border-gray-800 text-gray-700' : 'border-gold-500/50 bg-gold-500/10 text-gold-400'}`}>Ask AI</button>
+                  <button onClick={() => { VoiceEngine.speak("Nishkashann. Aapka khel yahi samapt hota hai.", 1.2, 0.95); setGameState("extracted"); }} className="px-8 py-3 border border-red-500/50 bg-red-500/10 hover:bg-red-500/30 rounded-2xl text-xs font-black tracking-[0.2em] uppercase text-red-100 glow-text-red shadow-[0_0_20px_rgba(255,0,85,0.2)] hover:scale-105 transition-all">Withdraw</button>
+                </div>
+              )}
+            </header>
+
+            <div className="flex-1 flex flex-col justify-center items-center py-6 w-full relative">
+              {/* Timer */}
+              <div className="relative mb-8" style={{ transform: 'translateZ(50px)' }}>
+                  <div className={`absolute -inset-8 bg-red-500/30 rounded-full blur-[40px] transition-opacity ${timer<=10?'opacity-100 animate-[pulse_0.4s_infinite]':'opacity-0'}`}></div>
+                  <span className={`text-[8rem] leading-none font-black font-mono tracking-tighter ${timer<=10?'text-red-500 glow-text-red':'text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 drop-shadow-[0_0_30px_rgba(255,255,255,0.5)]'}`}>{timer.toString().padStart(2, '0')}</span>
+              </div>
+
+              <AnimatePresence mode="wait">
+                <motion.div key={`block-${level}`} initial="hidden" animate="visible" exit={{ opacity: 0, scale: 0.95 }} variants={containerVariants} className="w-full flex flex-col items-center">
+                  <motion.div variants={itemVariants} style={{ transform: 'translateZ(30px)' }} className="w-full max-w-6xl glass-panel relative p-14 rounded-[3rem] border border-white/20 shadow-[0_40px_80px_rgba(0,0,0,0.8)] mb-10 overflow-hidden text-center bg-gradient-to-b from-white/5 to-transparent">
+                    <h2 className="text-4xl md:text-[3.2rem] font-medium text-center leading-[1.4] text-white mt-4 tracking-tight drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)]">{q.q}</h2>
+                  </motion.div>
+
+                  {/* Duel Mode Dynamic UI splits into absolute left/right controls */}
+                  <div className={`w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-8 relative z-20`}>
+                    {q.options.map((opt: string, i: number) => {
+                      const isSelected = selectedOpt === i;
+                      let styles = "border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] cursor-pointer backdrop-blur-2xl shadow-[0_15px_30px_rgba(0,0,0,0.4)]";
+                      
+                      if (playMode !== "duel") styles += " hover:bg-white/10 hover:border-white/40";
+                      
+                      if (isSelected) {
+                        if (isCorrect === null) styles += " border-gold-500 bg-gold-500/20";
+                        else if (isCorrect === true) styles += " border-[#00ff88] bg-[#00ff88]/20";
+                        else styles += " border-[#ff0055] bg-[#ff0055]/30";
+                      } else if (isCorrect === false && i === q.ans) {
+                          styles += " border-[#00ff88]/80 bg-[#00ff88]/20 text-white";
+                      }
+
+                      return (
+                        <motion.div variants={itemVariants} key={`opt-${level}-${i}`} onClick={() => execOption(i)} className={`flex items-center px-10 py-8 rounded-[2rem] border transition-all duration-300 relative ${styles} ${playMode==="duel"? 'pointer-events-none' : ''}`}>
+                          <span className="w-16 font-mono font-black text-4xl text-white/30 tracking-tighter">{String.fromCharCode(65 + i)}</span>
+                          <span className="text-3xl font-medium tracking-tight text-white drop-shadow-md">{opt}</span>
+                          
+                          {/* Offline Keys Overlay for UX */}
+                          {playMode === "duel" && (
+                            <div className="absolute top-2 right-4 flex gap-2">
+                               <div className="px-3 py-1 bg-neon-purple/20 border border-neon-purple rounded-md text-[10px] font-black text-neon-purple tracking-widest">{['Q','W','E','R'][i]} P1</div>
+                               <div className="px-3 py-1 bg-gold-400/20 border border-gold-400 rounded-md text-[10px] font-black text-gold-400 tracking-widest">{['U','I','O','P'][i]} P2</div>
+                            </div>
+                          )}
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              </AnimatePresence>
             </div>
           </div>
         )}
       </motion.div>
     </div>
   );
-
 }
