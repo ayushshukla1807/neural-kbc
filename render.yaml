@@ -1,0 +1,9 @@
+services:
+  # Unified All-in-One Deployment (Docker + Nginx Reverse Proxy)
+  - type: web
+    name: neural-kbc
+    env: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
