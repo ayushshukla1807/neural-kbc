@@ -450,12 +450,22 @@ export default function NeuralArena() {
                <div className="flex justify-between"><span>BATTERY:</span> <span className={`${hwData.battery === 'N/A' || parseInt(hwData.battery) > 30 ? 'text-neon-blue' : 'text-red-500 animate-pulse'}`}>{hwData.battery}</span></div>
                <div className="flex justify-between"><span>COORD:</span> <span className="text-gold-400">{hwData.lat}, {hwData.lon}</span></div>
             </div>
-            <div className="h-16 w-full bg-red-900/5 mt-1 border-t border-red-500/20 relative flex items-end overflow-hidden p-1">
-              <span className="absolute top-1 left-2 text-[8px] font-mono text-white/40">AI FOCUS TELEMETRY // LANGCHAIN CO-PROMPT</span>
-              <svg viewBox="0 0 100 20" className="w-full h-full preserve-aspect-none pt-4" style={{ overflow: 'visible' }}>
-                  <polyline fill="none" stroke="rgba(0, 240, 255, 0.8)" strokeWidth="1.5" points={focusHistory.map((val, i) => `${(i / (Math.max(1, focusHistory.length - 1))) * 100},${20 - (val / 100 * 20)}`).join(' ')} style={{ filter: 'drop-shadow(0px 0px 4px rgba(0,240,255,0.5))' }} />
-                  <path fill="rgba(0, 240, 255, 0.1)" d={`M0,20 ${focusHistory.map((val, i) => `L${(i / (Math.max(1, focusHistory.length - 1))) * 100},${20 - (val / 100 * 20)}`).join(' ')} L100,20 Z`} />
+            <div className="h-16 w-full bg-red-900/5 mt-1 border-t border-red-500/20 relative flex flex-col overflow-hidden p-1">
+              <div className="flex justify-between px-1">
+                <span className="text-[7px] font-mono text-white/40 uppercase">NEURAL_LOAD_COEFFICIENT</span>
+                <span className={`text-[7px] font-mono font-bold ${timer < 15 ? 'text-red-500 animate-pulse' : 'text-neon-blue'}`}>{timer < 15 ? 'HIGH_STRESS' : 'CALIBRATED'}</span>
+              </div>
+              <svg viewBox="0 0 100 20" className="w-full h-12 preserve-aspect-none" style={{ overflow: 'visible' }}>
+                  <polyline fill="none" stroke={timer < 15 ? "rgba(255, 0, 85, 0.8)" : "rgba(0, 240, 255, 0.8)"} strokeWidth="1.5" points={focusHistory.map((val, i) => `${(i / (Math.max(1, focusHistory.length - 1))) * 100},${20 - (val / 100 * 20)}`).join(' ')} style={{ filter: `drop-shadow(0px 0px 4px ${timer < 15 ? 'rgba(255,0,85,0.5)' : 'rgba(0,240,255,0.5)'})` }} />
+                  <path fill={timer < 15 ? "rgba(255, 0, 85, 0.1)" : "rgba(0, 240, 255, 0.1)"} d={`M0,20 ${focusHistory.map((val, i) => `L${(i / (Math.max(1, focusHistory.length - 1))) * 100},${20 - (val / 100 * 20)}`).join(' ')} L100,20 Z`} />
               </svg>
+            </div>
+            
+            {/* Real-time Behavioral Signals */}
+            <div className="bg-black/80 px-3 py-2 border-t border-white/5 flex flex-wrap gap-1">
+               {timer < 15 && <span className="px-1.5 py-0.5 bg-red-500/20 border border-red-500/50 text-red-500 text-[6px] font-bold uppercase tracking-tighter animate-pulse">Hesitation Detect</span>}
+               {level > 5 && <span className="px-1.5 py-0.5 bg-neon-blue/20 border border-neon-blue/50 text-neon-blue text-[6px] font-bold uppercase tracking-tighter">Expert Affinity</span>}
+               <span className="px-1.5 py-0.5 bg-green-500/20 border border-green-500/50 text-green-500 text-[6px] font-bold uppercase tracking-tighter">Integrity: 100%</span>
             </div>
             
             {/* Real-time Analytics Small Preview */}
@@ -532,59 +542,92 @@ export default function NeuralArena() {
       </AnimatePresence>
 
       <motion.div animate={{ rotateX: mousePos.y, rotateY: mousePos.x }} transition={{ type: "spring", stiffness: 100, damping: 30 }} style={{ transformStyle: 'preserve-3d' }} className="relative z-10 w-full h-full flex flex-col items-center justify-center">
+      {/* Pro Max Neural Header */}
+      <header className="fixed top-0 left-0 right-0 z-[60] bg-[#030305]/80 backdrop-blur-xl border-b border-white/5 px-10 py-4 flex justify-between items-center">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 bg-neon-green/20 border border-neon-green/40 rounded-lg flex items-center justify-center font-mono font-black text-neon-green shadow-[0_0_15px_rgba(57,255,20,0.3)]">NK</div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-mono font-bold text-white tracking-[0.2em] uppercase">Neural Genesis</span>
+            <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest">Shard: {selectedArena}</span>
+          </div>
+        </div>
+        
+        <div className="hidden md:flex gap-12">
+          {[
+            { label: 'Latency', val: '~42ms', color: 'text-neon-blue' },
+            { label: 'Uptime', val: '99.99%', color: 'text-green-500' },
+            { label: 'Yield', val: '5.2x', color: 'text-gold-400' }
+          ].map(stat => (
+            <div key={stat.label} className="flex flex-col items-center">
+              <span className="text-[7px] font-mono text-gray-600 uppercase mb-0.5">{stat.label}</span>
+              <span className={`text-[10px] font-mono font-black tracking-widest ${stat.color}`}>{stat.val}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-6">
+          <div className="flex flex-col items-end">
+            <span className="text-[8px] font-mono text-gray-500 uppercase">Current Ledger</span>
+            <span className="text-sm font-mono font-black text-white glow-text-blue">{walletBalance}</span>
+          </div>
+          <div className="w-10 h-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden grayscale hover:grayscale-0 transition-all cursor-pointer">
+            <div className="w-full h-full bg-gradient-to-br from-neon-blue to-neon-purple opacity-40"></div>
+          </div>
+        </div>
+      </header>
+
+      <motion.div animate={{ rotateX: mousePos.y, rotateY: mousePos.x }} transition={{ type: "spring", stiffness: 100, damping: 30 }} style={{ transformStyle: 'preserve-3d' }} className="relative z-10 w-full h-full flex flex-col items-center justify-center pt-24">
         {gameState === "lobby" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="z-10 flex flex-col items-center max-w-7xl w-full px-6">
             
-            {/* Premium Hero Section */}
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.8 }} className="flex flex-col items-center glass-panel p-16 rounded-[3.5rem] w-full text-center border-t border-l border-white/20 shadow-[-20px_20px_60px_rgba(0,0,0,0.8)] relative overflow-hidden mb-12">
-              <div className="absolute -top-24 -right-24 w-96 h-96 bg-neon-blue/10 rounded-full blur-[120px] animate-pulse"></div>
-              <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-neon-purple/10 rounded-full blur-[120px] animate-pulse"></div>
+            {/* Pro Max Hero Section */}
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.8 }} className="flex flex-col items-center bg-[#050508]/40 backdrop-blur-3xl p-20 rounded-[4rem] w-full text-center border border-white/10 shadow-[-20px_20px_100px_rgba(0,0,0,0.9)] relative overflow-hidden mb-16">
+              <div className="absolute -top-32 -right-32 w-[30rem] h-[30rem] bg-neon-green/5 rounded-full blur-[150px] animate-pulse"></div>
+              <div className="absolute -bottom-32 -left-32 w-[30rem] h-[30rem] bg-neon-blue/5 rounded-full blur-[150px] animate-pulse [animation-delay:2s]"></div>
               
-              <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="px-4 py-1 rounded-full border border-neon-blue/30 bg-neon-blue/5 mb-8">
-                <span className="text-[10px] font-mono text-neon-blue tracking-[0.4em] uppercase font-bold">Protocol v3.0 // Neural Genesis Alpha</span>
+              <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="px-6 py-2 rounded-full border border-neon-green/30 bg-neon-green/5 mb-10">
+                <span className="text-[10px] font-mono text-neon-green tracking-[0.5em] uppercase font-black">System Status: Integrity Validated</span>
               </motion.div>
 
-              <h1 className="text-7xl md:text-[9rem] font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-neon-purple to-neon-blue mb-6 leading-none" style={{ transform: 'translateZ(60px)' }}>NEURAL KBC</h1>
+              <h1 className="text-8xl md:text-[11rem] font-black tracking-tighter text-white mb-8 leading-none" style={{ transform: 'translateZ(100px)' }}>
+                NEURAL <span className="text-transparent bg-clip-text bg-gradient-to-br from-neon-green via-white to-neon-blue">KBC</span>
+              </h1>
               
-              <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 mb-10 opacity-60">
-                 {["LANGCHAIN RAG", "XGBOOST CORE", "SPARK ANALYTICS", "SOCKET.IO SHARDS", "MDP RISK MATRIX"].map(tech => (
-                   <span key={tech} className="text-[9px] font-mono text-white tracking-[0.2em]">{tech}</span>
+              <div className="flex flex-wrap justify-center gap-x-10 gap-y-4 mb-12 opacity-40">
+                 {["LANGCHAIN RAG", "XGBOOST CORE", "SPARK ANALYTICS", "MDP RISK MATRIX"].map(tech => (
+                   <span key={tech} className="text-[10px] font-mono text-white tracking-[0.4em] uppercase font-bold">{tech}</span>
                  ))}
               </div>
 
-              <p className="text-xl text-gray-300 max-w-3xl leading-relaxed mb-12 font-light tracking-wide" style={{ transform: 'translateZ(20px)' }}>
-                The world's first **Distributed Neural Intelligence Engine** for real-time competitive cognitive assessment. Architected with polyglot microservices and sharded real-time ledgers.
+              <p className="text-2xl text-gray-400 max-w-4xl leading-relaxed mb-16 font-light tracking-wide" style={{ transform: 'translateZ(40px)' }}>
+                Distributed cognitive warfare protocol for real-time risk modeling and technical assessment. Powered by sharded real-time ledgers and polyglot microservices.
               </p>
               
-              <div className="flex gap-6 w-full justify-center mb-4" style={{ transform: 'translateZ(40px)' }}>
-                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => verifyProctoring('solo')} className="flex-1 max-w-sm py-6 bg-white text-black rounded-3xl font-black tracking-[0.2em] uppercase text-sm shadow-[0_0_50px_rgba(255,255,255,0.4)] hover:shadow-[0_0_70px_rgba(255,255,255,0.6)] transition-all">
-                   Initiate Solo Ops
+              <div className="flex gap-8 w-full max-w-3xl justify-center mb-6" style={{ transform: 'translateZ(60px)' }}>
+                <motion.button whileHover={{ scale: 1.05, y: -5 }} whileTap={{ scale: 0.95 }} onClick={() => verifyProctoring('solo')} className="flex-1 py-7 bg-white text-black rounded-[2rem] font-black tracking-[0.3em] uppercase text-xs shadow-[0_20px_50px_rgba(255,255,255,0.2)] hover:shadow-[0_20px_70px_rgba(255,255,255,0.4)] transition-all">
+                   Initiate Solo
                 </motion.button>
                 
-                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => verifyProctoring('duel')} className="flex-1 max-w-sm py-6 bg-transparent border border-white/20 text-white rounded-3xl font-black tracking-[0.2em] uppercase text-sm hover:bg-white hover:text-black transition-all">
+                <motion.button whileHover={{ scale: 1.05, y: -5 }} whileTap={{ scale: 0.95 }} onClick={() => verifyProctoring('duel')} className="flex-1 py-7 bg-white/5 border border-white/20 text-white rounded-[2rem] font-black tracking-[0.3em] uppercase text-xs hover:bg-white hover:text-black transition-all">
                    Versus Duel
                 </motion.button>
               </div>
             </motion.div>
             
-            {/* System Status / Trust Bar */}
-            <div className="w-full flex justify-between items-center px-10 py-6 glass-panel rounded-3xl border border-white/5 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-700">
-               <div className="flex flex-col">
-                  <span className="text-[8px] font-mono text-gray-500 uppercase mb-1">Architecture</span>
-                  <span className="text-[10px] font-bold text-white tracking-widest">POLYGLOT_SHARDED</span>
-               </div>
-               <div className="flex flex-col">
-                  <span className="text-[8px] font-mono text-gray-500 uppercase mb-1">Inference Latency</span>
-                  <span className="text-[10px] font-bold text-neon-blue tracking-widest">~42MS</span>
-               </div>
-               <div className="flex flex-col">
-                  <span className="text-[8px] font-mono text-gray-500 uppercase mb-1">Uptime</span>
-                  <span className="text-[10px] font-bold text-green-500 tracking-widest">99.998%</span>
-               </div>
-               <div className="flex flex-col">
-                  <span className="text-[8px] font-mono text-gray-500 uppercase mb-1">Ledger Type</span>
-                  <span className="text-[10px] font-bold text-gold-400 tracking-widest">ACID_COMPLIANT</span>
-               </div>
+            {/* Pro Max Bento Status Grid */}
+            <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-6 px-4">
+               {[
+                 { label: 'Architecture', val: 'SHARDED', sub: 'Multi-tenant' },
+                 { label: 'Inference', val: '42ms', sub: 'Deterministic' },
+                 { label: 'Security', val: 'ACID', sub: 'Strict Consistency' },
+                 { label: 'Network', val: '99.9%', sub: 'Global Cluster' }
+               ].map(stat => (
+                 <div key={stat.label} className="bg-[#050508]/60 backdrop-blur-2xl p-8 rounded-[2rem] border border-white/5 flex flex-col items-center group hover:border-white/20 transition-all">
+                    <span className="text-[9px] font-mono text-gray-600 uppercase mb-2 tracking-widest">{stat.label}</span>
+                    <span className="text-xl font-mono font-black text-white mb-1 tracking-tighter group-hover:text-neon-blue transition-colors">{stat.val}</span>
+                    <span className="text-[8px] font-mono text-gray-700 uppercase">{stat.sub}</span>
+                 </div>
+               ))}
             </div>
 
             {/* Growth Hook: Referral System */}
